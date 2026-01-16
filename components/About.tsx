@@ -1,14 +1,14 @@
-import React, { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import React, { useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 const About: React.FC = () => {
   const targetRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: targetRef,
-    offset: ["start end", "end start"],
+    offset: ['start end', 'end start'],
   });
 
-  const imgY = useTransform(scrollYProgress, [0, 1], ["-15%", "15%"]);
+  const imgY = useTransform(scrollYProgress, [0, 1], ['-15%', '15%']);
 
   return (
     <section
@@ -54,14 +54,14 @@ const About: React.FC = () => {
           </h3>
           <div className="space-y-6 text-white/60 text-lg leading-relaxed">
             <p>
-              Frontend Engineer with 4+ years of experience building
+              Software Engineer with 4+ years of experience building
               high-quality web applications with modern JavaScript/TypeScript
               (React, Next.js, Astro), emphasizing robust, scalable,
               high-performance solutions.
             </p>
             <p>
-              Expert in React, TypeScript, and animation libraries, with a
-              strong eye for UI/UX and detail. My work focuses on bridging the
+              Expert in React, TypeScript, Next.js and animation libraries, with
+              a strong eye for UI/UX and detail. My work focuses on bridging the
               gap between functional code and aesthetic brilliance.
             </p>
           </div>
@@ -83,21 +83,21 @@ const About: React.FC = () => {
 
           <div className="mt-12 flex flex-wrap gap-3">
             {[
-              "JavaScript",
-              "React",
-              "TypeScript",
-              "Next.js",
-              "Redux",
-              "Tanstack Query",
-              "Socket.IO",
-              "GSAP",
-              "WebGL",
-              "Three.js",
-              "Electron.js",
-              "Webpack",
-              "React Native",
-              "AI Integrations",
-            ].map((skill) => (
+              'JavaScript',
+              'React',
+              'TypeScript',
+              'Next.js',
+              'Redux',
+              'Tanstack Query',
+              'Socket.IO',
+              'GSAP',
+              'WebGL',
+              'Three.js',
+              'Electron.js',
+              'Webpack',
+              'React Native',
+              'AI Integrations',
+            ].map(skill => (
               <span
                 key={skill}
                 className="px-4 py-2 bg-white/5 border border-white/10 text-xs uppercase tracking-widest hover:border-red-600 transition-colors cursor-default"
