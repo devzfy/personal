@@ -28,7 +28,11 @@ export default function Navbar() {
           : "bg-transparent"
       }`}
     >
-      <Link href="/" className="flex items-center space-x-2 group">
+      <Link
+        href="/"
+        data-cursor="hover"
+        className="flex items-center space-x-2 group"
+      >
         <span className="text-2xl font-serif tracking-tighter group-hover:text-red-600 transition-colors">
           JS.
         </span>
@@ -37,6 +41,7 @@ export default function Navbar() {
       <div className="flex items-center space-x-8 text-sm font-medium tracking-widest uppercase">
         <Link
           href="/"
+          data-cursor="hover"
           className={`hover:text-red-600 transition-colors ${
             pathname === "/"
               ? "text-red-600 underline underline-offset-8"
@@ -47,6 +52,7 @@ export default function Navbar() {
         </Link>
         <Link
           href="/projects"
+          data-cursor="hover"
           className={`hover:text-red-600 transition-colors ${
             pathname.startsWith("/projects")
               ? "text-red-600 underline underline-offset-8"
@@ -57,6 +63,7 @@ export default function Navbar() {
         </Link>
         <Link
           href="/contact"
+          data-cursor="hover"
           className={`px-4 py-2 border border-white/20 hover:border-red-600 hover:bg-red-600 transition-all duration-300 ${
             pathname === "/contact"
               ? "bg-red-600 border-red-600 text-white"

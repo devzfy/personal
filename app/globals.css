@@ -52,3 +52,17 @@ html.lenis {
 .lenis.lenis-scrolling iframe {
   pointer-events: none;
 }
+
+/*
+ * Native cursor is hidden only while CustomCursor is mounted and active, and
+ * the class is only added when the device reports (pointer: fine).
+ * The descendant selector is required: `cursor` is inherited, but links get
+ * `cursor: pointer` from the UA stylesheet and badges carry Tailwind's
+ * `cursor-default`, both of which would otherwise win.
+ * Specificity here is 0-1-1, which beats those 0-1-0 utilities without
+ * needing !important.
+ */
+body.custom-cursor-active,
+body.custom-cursor-active * {
+  cursor: none;
+}

@@ -34,6 +34,7 @@ export default function Contact() {
           <div className="flex flex-col md:flex-row items-center justify-center gap-6 mt-16">
             <a
               href={`mailto:${SITE.email}`}
+              data-cursor="hover"
               className="group flex items-center space-x-4 px-10 py-5 bg-red-600 hover:bg-white text-white hover:text-black transition-all duration-300 w-full md:w-auto"
             >
               <span className="uppercase text-sm font-bold tracking-widest">
@@ -58,6 +59,7 @@ export default function Contact() {
             <button
               type="button"
               onClick={handleCopyEmail}
+              data-cursor="hover"
               className="px-10 py-5 border border-white/20 hover:border-white transition-colors uppercase text-sm font-bold tracking-widest w-full md:w-auto"
             >
               Copy Email
