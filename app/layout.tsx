@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
-import Script from "next/script";
 
 import Navbar from "@/components/ui/Navbar";
 import ScrollIndicator from "@/components/ui/ScrollIndicator";
@@ -127,15 +126,6 @@ export default function RootLayout({
         </RouteTransitionProvider>
 
         <LoadingOverlay />
-
-        {/* Third-party widget carried over verbatim from the old index.html. */}
-        <Script
-          src="https://uhamkor.uz/widget/widget.js"
-          data-project-uuid="c6e0f4f1-887d-407f-b8d3-489dd024ca6a"
-          data-language="en"
-          data-user=""
-          strategy="afterInteractive"
-        />
       </body>
     </html>
   );
