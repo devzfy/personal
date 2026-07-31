@@ -27,27 +27,71 @@ uniform float uPulse;
 uniform float uPixelRatio;
 uniform float uScale;
 uniform float uDriftAmp;
+uniform float uMorph;
+uniform float uMorphMax;
+uniform float uStagger;
 
 attribute float aSeed;
+attribute vec3 aShape1;
+attribute vec3 aShape2;
 
 varying float vSeed;
 
 ${SIMPLEX_NOISE_3D}
 
+/**
+ * Piecewise blend across the shape sequence:
+ *   sphere (position) -> aShape1 (cloud) -> aShape2 (grid) -> back to sphere.
+ *
+ * A chain of clamped mixes rather than dynamic indexing, because GLSL cannot
+ * index attributes at runtime. Each mix only engages once the previous one has
+ * saturated, so at t=1.5 the first is fully applied and the second is halfway —
+ * which is exactly a piecewise interpolation, for the cost of three mixes.
+ * The final leg returns to the position attribute, so three buffers cover
+ * four phases.
+ */
+vec3 shapeAt(float t) {
+  vec3 p = position;
+  p = mix(p, aShape1, clamp(t, 0.0, 1.0));
+  p = mix(p, aShape2, clamp(t - 1.0, 0.0, 1.0));
+  p = mix(p, position, clamp(t - 2.0, 0.0, 1.0));
+  return p;
+}
+
 void main() {
-  // Sampling three offset slices of the same noise field gives a divergence-free
-  // enough drift that particles wander rather than all sliding one way.
-  float t = uTime * 0.18;
+  // Per-particle stagger inside the current transition. Without it every
+  // particle departs and arrives on the same frame, which reads as one rigid
+  // object deforming instead of a field reorganising.
+  float m = clamp(uMorph, 0.0, uMorphMax);
+  float phase = floor(m);
+  float f = fract(m);
+  float local = clamp((f - aSeed * uStagger) / max(1e-4, 1.0 - uStagger), 0.0, 1.0);
+  float t = phase + smoothstep(0.0, 1.0, local);
+
+  vec3 base = shapeAt(t);
+
+  // Noise is sampled from the *sphere* position, not the morphed one, so each
+  // particle keeps a stable drift signature through the morph and the field
+  // does not develop artefacts where the grid bunches points together.
+  float nt = uTime * 0.18;
   vec3 field = position * 0.9 + vec3(aSeed * 4.0);
   vec3 drift = vec3(
-    snoise(field + vec3(t, 0.0, 0.0)),
-    snoise(field + vec3(0.0, t, 0.0)),
-    snoise(field + vec3(0.0, 0.0, t))
+    snoise(field + vec3(nt, 0.0, 0.0)),
+    snoise(field + vec3(0.0, nt, 0.0)),
+    snoise(field + vec3(0.0, 0.0, nt))
   );
 
   // Drift opens up a little as the scroll narrative advances.
   float amp = uDriftAmp * (0.6 + uProgress * 0.8);
-  vec3 displaced = position + drift * amp;
+
+  // ...but is damped hard near the lattice phase. At full amplitude the drift
+  // (~0.115 world units at that scroll position) is more than 3x the lattice
+  // spacing (2.2 / 64 ~= 0.035), which erases the structure completely and
+  // leaves the grid looking like another cloud. Damping lets it resolve.
+  float gridness = 1.0 - abs(clamp(t, 1.0, 3.0) - 2.0);
+  amp *= mix(1.0, 0.12, gridness);
+
+  vec3 displaced = base + drift * amp;
 
   vec4 mvPosition = modelViewMatrix * vec4(displaced, 1.0);
   gl_Position = projectionMatrix * mvPosition;
