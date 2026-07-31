@@ -1,5 +1,28 @@
 import type { Project, Service } from "./types";
 
+/*
+ * ---------------------------------------------------------------------------
+ * BEFORE DEPLOYING — two things in here are not real yet:
+ *
+ * 1. liveUrl / githubUrl are example.com placeholders. They are deliberately
+ *    obvious rather than plausible-looking (github.com/devzfy/<something>
+ *    would read as real and 404). Replace them with real URLs, or delete the
+ *    fields — the case study only renders a button when the field is set, so
+ *    deleting them is safe and leaves no gap. These are client projects, so
+ *    for most of them "no public link" is probably the correct answer.
+ *
+ * 2. The problem / approach / result copy is inferred from the metrics and
+ *    tech stack below, not from any source document. It is plausible and
+ *    internally consistent, but it is not attested — read it for factual
+ *    accuracy before it represents you.
+ *
+ * imageUrl is intentionally left unset. Per-project openGraph images are
+ * generated at build time from this data (app/projects/[slug]/opengraph-image.tsx),
+ * so no stock placeholder is needed. Set imageUrl only when you have a real
+ * project image to show in the page hero.
+ * ---------------------------------------------------------------------------
+ */
+
 export const PROJECTS: Project[] = [
   {
     id: "elearning",
@@ -8,6 +31,12 @@ export const PROJECTS: Project[] = [
       "Engineered the frontend of a large-scale education platform for 2.5 million+ learners.",
     longDescription:
       "Frontend engineering for an education platform serving more than 2.5 million active learners. The work centred on the Next.js and TypeScript application layer — component architecture, state management with Redux, motion design with Framer Motion — together with the performance work that brought load times down by 30%.",
+    problem:
+      "Serving 2.5 million active learners puts every frontend decision under load. Slow paint on the heaviest course routes and an inconsistent component model were costing engagement at exactly the moment a learner decides whether to keep going.",
+    approach:
+      "Rebuilt the application layer on Next.js and TypeScript behind a strict component contract, moved shared state into Redux with predictable selectors, and treated motion as part of the interface rather than decoration. The performance work went straight at the render path: bundle splitting, image strategy, and removing layout thrash on the routes that carried the most traffic.",
+    result:
+      "Load times improved by 30% and engagement rose 20% on the back of the UX changes — on a codebase 2.5 million active users now depend on.",
     techStack: [
       "Next.js",
       "TypeScript",
@@ -20,6 +49,9 @@ export const PROJECTS: Project[] = [
       "30% improvement in load times",
       "Increased engagement by 20% through UX optimizations",
     ],
+    // PLACEHOLDER LINKS — see the note at the top of this file.
+    liveUrl: "https://example.com/elearning-platform",
+    githubUrl: "https://example.com/elearning-repo",
   },
   {
     id: "ecommerce",
@@ -28,12 +60,20 @@ export const PROJECTS: Project[] = [
       "Revamped a legacy e-commerce site with Next.js and modern UI components, integrating Stripe.",
     longDescription:
       "A full overhaul of a legacy storefront. The old frontend was replaced with a Next.js application built on a modern component architecture using shadcn/ui, with the Stripe API wired in for multi-method payments and a checkout flow rebuilt to complete 50% faster.",
+    problem:
+      "A legacy storefront where checkout was the bottleneck. Every additional payment method meant more branching through code that was already difficult to change safely, so the cost of each new option kept rising.",
+    approach:
+      "Replaced the legacy frontend with a Next.js application on a composable shadcn/ui component layer, and rebuilt checkout around the Stripe API so an additional payment method became configuration rather than a new code path. Product and order data moved onto PostgreSQL.",
+    result:
+      "Checkout completes 50% faster, multi-method payments work without special-casing, and the component architecture makes the next change cheap instead of risky.",
     techStack: ["React", "Next.js", "Stripe API", "shadcn/ui", "PostgreSQL"],
     metrics: [
       "Modern component architecture",
       "Seamless multi-payment integration",
       "50% faster checkout flow",
     ],
+    // PLACEHOLDER LINK — see the note at the top of this file.
+    liveUrl: "https://example.com/storefront",
   },
   {
     id: "logistics",
@@ -42,6 +82,12 @@ export const PROJECTS: Project[] = [
       "Handles 5,000+ daily operations and ~1,000 concurrent users with real-time data visualization.",
     longDescription:
       "A real-time operations dashboard handling over 5,000 daily operations for roughly 1,000 concurrent users. Live asset positions stream in over Socket.io and are visualised with D3.js, alongside a built-in predictive analytics view and a real-time chat channel between customers and the company. Data latency dropped by 60%.",
+    problem:
+      "Operations teams were making decisions on stale data. At 5,000+ daily operations and roughly 1,000 concurrent users, polling could not keep the picture current, and customers had no direct line to the company from inside the product.",
+    approach:
+      "Moved live asset positions onto Socket.io streams and visualised them with D3.js, with TanStack Query owning server state so the interface never re-fetched what it already had. A predictive analytics view sits on the same stream, as does a real-time chat channel between customers and the company.",
+    result:
+      "Data latency fell 60%, 5,000+ assets are tracked live, and roughly 1,000 concurrent users now work from the same current picture instead of their own stale copies.",
     techStack: [
       "React",
       "Socket.io",
@@ -56,6 +102,8 @@ export const PROJECTS: Project[] = [
       "Built-in predictive analytics view",
       "Built a real-time chat between customers and company",
     ],
+    // PLACEHOLDER LINK — see the note at the top of this file.
+    githubUrl: "https://example.com/logistics-repo",
   },
   {
     id: "admin-crm",
@@ -64,6 +112,12 @@ export const PROJECTS: Project[] = [
       "Internal tools managing 10k+ records with automated workflows to cut manual operations.",
     longDescription:
       "Internal tooling for managing more than 10,000 customer records. Twelve core business workflows were automated, halving manual data entry, and a real-time chat channel between leads and admins was built on Socket.io. Data is surfaced through Chart.js dashboards with TanStack Query handling server state.",
+    problem:
+      "Internal teams were hand-carrying more than 10,000 customer records through processes that existed only as convention. The cost was not only the hours — it was the error rate that comes with any manual data entry at that volume.",
+    approach:
+      "Automated twelve core business workflows behind a single admin surface, with TanStack Query managing server state and Chart.js turning record-level data into something a manager can act on. Leads and admins talk over a Socket.io channel inside the same tool.",
+    result:
+      "Manual data entry halved, twelve workflows now run without intervention, and 10,000+ records sit under one roof with an audit trail instead of in spreadsheets.",
     techStack: ["React", "TanStack Query", "Tailwind", "Chart.js", "Socket.io"],
     metrics: [
       "50% less manual data entry",
@@ -135,7 +189,63 @@ export function getProjectBySlug(slug: string): Project | undefined {
   return PROJECTS.find((project) => project.id === slug);
 }
 
-/** 1-based position, used for the "Case Study 0N" label and prev/next nav. */
+/** 0-based position, used for the "Case Study 0N" label. */
 export function getProjectIndex(slug: string): number {
   return PROJECTS.findIndex((project) => project.id === slug);
+}
+
+/**
+ * The next project in the array, wrapping around at the end so the case study
+ * pages form a loop. Returns undefined only if the slug is unknown.
+ */
+export function getNextProject(slug: string): Project | undefined {
+  const index = getProjectIndex(slug);
+  if (index === -1) return undefined;
+  return PROJECTS[(index + 1) % PROJECTS.length];
+}
+
+export interface ParsedMetric {
+  /** The headline figure, e.g. "2.5M+", "30%", "12". Null when the metric is qualitative. */
+  value: string | null;
+  /** The metric with the figure removed, or the whole string when there is no figure. */
+  label: string;
+  /**
+   * True when the figure led the string and was cleanly lifted out of the
+   * label. False means the label still contains the figure. Callers with tight
+   * space (the openGraph card) can prefer the clean ones.
+   */
+  leads: boolean;
+}
+
+/**
+ * Splits a metric string into a big number and its caption.
+ *
+ * The figure is only lifted out of the caption when it leads the string
+ * ("2.5M+ active users" -> "2.5M+" / "active users"). When it sits mid-sentence
+ * the caption is left whole, because removing it strands the preposition —
+ * "Increased engagement by 20% through UX optimizations" would otherwise become
+ * "Increased engagement by through UX optimizations". The figure repeats in
+ * those cases, which is redundant but always grammatical.
+ *
+ * Metrics with no figure at all ("Modern component architecture") return
+ * value: null and get rendered as statements instead.
+ */
+export function parseMetric(metric: string): ParsedMetric {
+  const match = metric.match(/\d[\d.,]*\s*(?:%|[MKk]\+?|x)?\+?/);
+  if (!match) {
+    return { value: null, label: metric, leads: false };
+  }
+
+  const value = match[0].trim();
+  const leads = match.index === 0;
+  if (!leads) {
+    return { value, label: metric, leads: false };
+  }
+
+  const label = metric.slice(match[0].length).replace(/\s{2,}/g, " ").trim();
+  return {
+    value,
+    label: label.length > 0 ? label : metric,
+    leads: true,
+  };
 }

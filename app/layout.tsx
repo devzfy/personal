@@ -7,6 +7,7 @@ import ScrollIndicator from "@/components/ui/ScrollIndicator";
 import CustomCursor from "@/components/ui/CustomCursor";
 import LoadingOverlay from "@/components/ui/LoadingOverlay";
 import PageTransition from "@/components/providers/PageTransition";
+import RouteTransitionProvider from "@/components/providers/RouteTransitionProvider";
 import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
 import { SITE } from "@/lib/site";
 
@@ -115,13 +116,15 @@ export default function RootLayout({
         <SmoothScrollProvider />
         <CustomCursor />
 
-        <div className="bg-black min-h-screen text-white selection:bg-red-600 selection:text-white">
-          <ScrollIndicator />
-          <Navbar />
-          <main>
-            <PageTransition>{children}</PageTransition>
-          </main>
-        </div>
+        <RouteTransitionProvider>
+          <div className="bg-black min-h-screen text-white selection:bg-red-600 selection:text-white">
+            <ScrollIndicator />
+            <Navbar />
+            <main>
+              <PageTransition>{children}</PageTransition>
+            </main>
+          </div>
+        </RouteTransitionProvider>
 
         <LoadingOverlay />
 

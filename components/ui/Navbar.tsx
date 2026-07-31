@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import TransitionLink from "@/components/ui/TransitionLink";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 
@@ -28,7 +28,7 @@ export default function Navbar() {
           : "bg-transparent"
       }`}
     >
-      <Link
+      <TransitionLink
         href="/"
         data-cursor="hover"
         className="flex items-center space-x-2 group"
@@ -36,10 +36,10 @@ export default function Navbar() {
         <span className="text-2xl font-serif tracking-tighter group-hover:text-red-600 transition-colors">
           JS.
         </span>
-      </Link>
+      </TransitionLink>
 
       <div className="flex items-center space-x-8 text-sm font-medium tracking-widest uppercase">
-        <Link
+        <TransitionLink
           href="/"
           data-cursor="hover"
           className={`hover:text-red-600 transition-colors ${
@@ -49,8 +49,8 @@ export default function Navbar() {
           }`}
         >
           Work
-        </Link>
-        <Link
+        </TransitionLink>
+        <TransitionLink
           href="/projects"
           data-cursor="hover"
           className={`hover:text-red-600 transition-colors ${
@@ -60,8 +60,8 @@ export default function Navbar() {
           }`}
         >
           Archive
-        </Link>
-        <Link
+        </TransitionLink>
+        <TransitionLink
           href="/contact"
           data-cursor="hover"
           className={`px-4 py-2 border border-white/20 hover:border-red-600 hover:bg-red-600 transition-all duration-300 ${
@@ -71,7 +71,7 @@ export default function Navbar() {
           }`}
         >
           Contact
-        </Link>
+        </TransitionLink>
       </div>
     </motion.nav>
   );

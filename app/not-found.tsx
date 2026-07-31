@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import TransitionLink from "@/components/ui/TransitionLink";
 
 export const metadata: Metadata = {
   title: "Page not found",
@@ -18,18 +18,18 @@ export default function NotFound() {
         This page does not exist. The archive is probably where you were headed.
       </p>
       <div className="flex flex-col sm:flex-row gap-6">
-        <Link
+        <TransitionLink
           href="/"
           className="px-10 py-5 bg-red-600 hover:bg-white text-white hover:text-black transition-all duration-300 uppercase text-sm font-bold tracking-widest"
         >
           Back Home
-        </Link>
-        <Link
+        </TransitionLink>
+        <TransitionLink
           href="/projects"
           className="px-10 py-5 border border-white/20 hover:border-white transition-colors uppercase text-sm font-bold tracking-widest"
         >
           View Archive
-        </Link>
+        </TransitionLink>
       </div>
     </div>
   );

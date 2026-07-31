@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import FadeIn from "@/components/ui/FadeIn";
+import TransitionLink from "@/components/ui/TransitionLink";
 import {
-  PROJECTS,
+  getNextProject,
   getProjectBySlug,
   getProjectIndex,
   getProjectSlugs,
+  parseMetric,
 } from "@/lib/projects";
 import { SITE, absoluteUrl } from "@/lib/site";
 
@@ -36,6 +38,21 @@ export async function generateMetadata({
   const description = project.longDescription ?? project.description;
   const url = absoluteUrl(`/projects/${project.id}`);
 
+  /*
+   * When a project has its own imageUrl, that wins. Otherwise the openGraph
+   * image is left to opengraph-image.tsx in this folder, which renders a
+   * branded card per project at build time — so this omits `images` entirely
+   * rather than falling back to the generic site preview.
+   */
+  const images = project.imageUrl
+    ? [
+        {
+          url: project.imageUrl,
+          alt: `${project.title} — case study`,
+        },
+      ]
+    : undefined;
+
   return {
     title: project.title,
     description,
@@ -45,23 +62,20 @@ export async function generateMetadata({
       url,
       title: `${project.title} — ${SITE.name}`,
       description,
-      images: [
-        {
-          url: SITE.ogImage.url,
-          width: SITE.ogImage.width,
-          height: SITE.ogImage.height,
-          alt: `${project.title} — case study`,
-        },
-      ],
+      ...(images ? { images } : {}),
     },
     twitter: {
       card: "summary_large_image",
       title: `${project.title} — ${SITE.name}`,
       description,
-      images: [SITE.ogImage.url],
+      ...(images ? { images: images.map((image) => image.url) } : {}),
     },
   };
 }
+
+const sectionHeading =
+  "text-xs font-bold tracking-[0.4em] text-red-600 uppercase mb-8";
+const body = "text-white/60 text-lg leading-relaxed";
 
 export default async function CaseStudyPage({ params }: PageProps) {
   const { slug } = await params;
@@ -70,8 +84,15 @@ export default async function CaseStudyPage({ params }: PageProps) {
   if (!project) notFound();
 
   const index = getProjectIndex(slug);
-  const previous = index > 0 ? PROJECTS[index - 1] : undefined;
-  const next = index < PROJECTS.length - 1 ? PROJECTS[index + 1] : undefined;
+  const next = getNextProject(slug);
+
+  const narrative = [
+    { label: "Problem", copy: project.problem },
+    { label: "Approach", copy: project.approach },
+    { label: "Result", copy: project.result },
+  ].filter((section): section is { label: string; copy: string } =>
+    Boolean(section.copy),
+  );
 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
@@ -102,14 +123,16 @@ export default async function CaseStudyPage({ params }: PageProps) {
 
       <article className="max-w-4xl mx-auto">
         <FadeIn>
-          <Link
+          <TransitionLink
             href="/projects"
+            data-cursor="hover"
             className="inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.4em] text-white/40 hover:text-red-600 transition-colors mb-16"
           >
             <span aria-hidden="true">&larr;</span> Back to Archive
-          </Link>
+          </TransitionLink>
         </FadeIn>
 
+        {/* ---------------------------------------------------------- hero */}
         <header className="mb-24">
           <FadeIn>
             <span className="text-[10px] uppercase tracking-[0.4em] text-red-600 mb-6 block">
@@ -123,108 +146,166 @@ export default async function CaseStudyPage({ params }: PageProps) {
             <div className="h-[1px] w-32 bg-red-600 mb-10" />
           </FadeIn>
           <FadeIn delay={0.3}>
-            <p className="text-white/60 text-xl leading-relaxed">
+            <p className="text-white/60 text-xl leading-relaxed mb-10">
               {project.description}
             </p>
-          </FadeIn>
-        </header>
 
-        {project.longDescription ? (
-          <FadeIn delay={0.4}>
-            <section className="mb-20 border-t border-white/5 pt-12">
-              <h2 className="text-xs font-bold tracking-[0.4em] text-red-600 uppercase mb-8">
-                Overview
-              </h2>
-              <p className="text-white/60 text-lg leading-relaxed">
-                {project.longDescription}
-              </p>
-            </section>
-          </FadeIn>
-        ) : null}
-
-        <FadeIn delay={0.4}>
-          <section className="mb-20 border-t border-white/5 pt-12">
-            <h2 className="text-xs font-bold tracking-[0.4em] text-red-600 uppercase mb-8">
-              Impact
-            </h2>
-            <ul className="grid sm:grid-cols-2 gap-px bg-white/10 border border-white/10">
-              {project.metrics.map((metric) => (
-                <li
-                  key={metric}
-                  className="bg-black p-8 text-sm font-medium uppercase tracking-wider text-white/80"
-                >
-                  <span className="text-red-600 mr-2" aria-hidden="true">
-                    •
-                  </span>
-                  {metric}
-                </li>
-              ))}
-            </ul>
-          </section>
-        </FadeIn>
-
-        <FadeIn delay={0.4}>
-          <section className="mb-20 border-t border-white/5 pt-12">
-            <h2 className="text-xs font-bold tracking-[0.4em] text-red-600 uppercase mb-8">
-              Stack
-            </h2>
-            <div className="flex flex-wrap gap-3">
+            {/* Same badge treatment as ProjectCard, so the archive and the
+                case study read as one system. */}
+            <div className="flex flex-wrap gap-2">
               {project.techStack.map((tech) => (
                 <span
                   key={tech}
-                  className="px-4 py-2 bg-white/5 border border-white/10 text-xs uppercase tracking-widest hover:border-red-600 transition-colors cursor-default"
+                  className="text-[10px] uppercase tracking-widest text-white/30 px-2 py-1 border border-white/5 bg-white/5"
                 >
                   {tech}
                 </span>
               ))}
             </div>
+          </FadeIn>
+
+          {(project.liveUrl || project.githubUrl) && (
+            <FadeIn delay={0.4}>
+              <div className="flex flex-col sm:flex-row gap-4 mt-12">
+                {project.liveUrl && (
+                  <a
+                    href={project.liveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-cursor="hover"
+                    className="px-8 py-4 bg-red-600 hover:bg-white text-white hover:text-black transition-all duration-300 uppercase text-xs font-bold tracking-widest text-center"
+                  >
+                    View Live
+                  </a>
+                )}
+                {project.githubUrl && (
+                  <a
+                    href={project.githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-cursor="hover"
+                    className="px-8 py-4 border border-white/20 hover:border-white transition-colors uppercase text-xs font-bold tracking-widest text-center"
+                  >
+                    Source
+                  </a>
+                )}
+              </div>
+            </FadeIn>
+          )}
+        </header>
+
+        {/* Only rendered when a project has a real image of its own. */}
+        {project.imageUrl && (
+          <FadeIn delay={0.2}>
+            <div className="relative aspect-16/10 w-full mb-24 overflow-hidden border border-white/10">
+              <Image
+                src={project.imageUrl}
+                alt={`${project.title} interface`}
+                fill
+                sizes="(max-width: 896px) 100vw, 896px"
+                className="object-cover"
+              />
+            </div>
+          </FadeIn>
+        )}
+
+        {/* ------------------------------------------------------ overview */}
+        {project.longDescription && (
+          <FadeIn delay={0.4}>
+            <section className="mb-20 border-t border-white/5 pt-12">
+              <h2 className={sectionHeading}>Overview</h2>
+              <p className={body}>{project.longDescription}</p>
+            </section>
+          </FadeIn>
+        )}
+
+        {/* ------------------------------- problem / approach / result body */}
+        {narrative.length > 0 && (
+          <div className="mb-20 border-t border-white/5 pt-12 space-y-16">
+            {narrative.map((section) => (
+              <FadeIn key={section.label} delay={0.2}>
+                <section>
+                  <h2 className={sectionHeading}>{section.label}</h2>
+                  <p className={body}>{section.copy}</p>
+                </section>
+              </FadeIn>
+            ))}
+          </div>
+        )}
+
+        {/* ------------------------------------------------------- metrics */}
+        <FadeIn delay={0.2}>
+          <section className="mb-20 border-t border-white/5 pt-12">
+            <h2 className={sectionHeading}>Impact</h2>
+            <ul className="grid sm:grid-cols-2 gap-px bg-white/10 border border-white/10">
+              {project.metrics.map((metric) => {
+                const { value, label } = parseMetric(metric);
+                return (
+                  <li
+                    key={metric}
+                    className="bg-black p-8 md:p-10 flex flex-col justify-end"
+                  >
+                    {value ? (
+                      <>
+                        <p className="font-serif text-5xl md:text-6xl text-red-600 leading-none mb-4">
+                          {value}
+                        </p>
+                        <p className="text-xs uppercase tracking-widest text-white/50 leading-relaxed">
+                          {label}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="flex items-start text-sm uppercase tracking-widest text-white/80 leading-relaxed">
+                        <span className="text-red-600 mr-3" aria-hidden="true">
+                          •
+                        </span>
+                        {label}
+                      </p>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           </section>
         </FadeIn>
 
-        <nav
-          aria-label="Other case studies"
-          className="border-t border-white/10 pt-12 grid sm:grid-cols-2 gap-8"
-        >
-          {previous ? (
-            <Link
-              href={`/projects/${previous.id}`}
-              className="group text-left sm:col-start-1"
-            >
-              <span className="block text-[10px] uppercase tracking-[0.4em] text-white/30 mb-3">
-                Previous
-              </span>
-              <span className="block text-xl font-serif group-hover:text-red-600 transition-colors">
-                {previous.title}
-              </span>
-            </Link>
-          ) : (
-            <span />
-          )}
-          {next ? (
-            <Link
+        {/* -------------------------------------------------- next project */}
+        {next && (
+          <nav aria-label="Next case study" className="border-t border-white/10 pt-12">
+            <TransitionLink
               href={`/projects/${next.id}`}
-              className="group text-left sm:col-start-2 sm:text-right"
+              data-cursor="hover"
+              className="group block"
             >
-              <span className="block text-[10px] uppercase tracking-[0.4em] text-white/30 mb-3">
-                Next
+              <span className="block text-[10px] uppercase tracking-[0.4em] text-white/30 mb-4">
+                Next Project
               </span>
-              <span className="block text-xl font-serif group-hover:text-red-600 transition-colors">
-                {next.title}
+              <span className="flex items-baseline justify-between gap-6">
+                <span className="text-3xl md:text-5xl font-serif group-hover:text-red-600 group-hover:italic transition-all">
+                  {next.title}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="text-red-600 text-2xl group-hover:translate-x-2 transition-transform"
+                >
+                  &rarr;
+                </span>
               </span>
-            </Link>
-          ) : null}
-        </nav>
+            </TransitionLink>
+          </nav>
+        )}
 
         <div className="mt-24 border-t border-white/5 pt-16 text-center">
           <h2 className="text-3xl md:text-5xl font-serif mb-10">
             Interested in something similar?
           </h2>
-          <Link
+          <TransitionLink
             href="/contact"
+            data-cursor="hover"
             className="inline-block px-10 py-5 bg-red-600 hover:bg-white text-white hover:text-black transition-all duration-300 uppercase text-sm font-bold tracking-widest"
           >
             Start a Conversation
-          </Link>
+          </TransitionLink>
         </div>
       </article>
     </div>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import TransitionLink from "@/components/ui/TransitionLink";
 
 import ArchiveHeader from "@/components/ui/ArchiveHeader";
 import ProjectCard from "@/components/ui/ProjectCard";
@@ -45,12 +45,12 @@ export default function ProjectsPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-10">
           {PROJECTS.map((project, index) => (
             <div key={project.id} className="group">
-              <Link
+              <TransitionLink
                 href={`/projects/${project.id}`}
                 aria-label={`Read the ${project.title} case study`}
               >
                 <ProjectCard project={project} index={index} />
-              </Link>
+              </TransitionLink>
               <div className="mt-8 px-2 flex justify-between items-start opacity-60 group-hover:opacity-100 transition-opacity">
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-widest mb-1">

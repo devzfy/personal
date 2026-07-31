@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import TransitionLink from "@/components/ui/TransitionLink";
 
 import Hero from "@/components/ui/Hero";
 import About from "@/components/ui/About";
@@ -90,23 +90,23 @@ export default function HomePage() {
                   <SplitTextReveal text="Notable Successes." />
                 </h3>
               </div>
-              <Link
+              <TransitionLink
                 href="/projects"
                 className="text-xs uppercase tracking-widest font-bold border-b border-red-600 pb-2 hover:text-red-600 transition-colors"
               >
                 View Full Archive
-              </Link>
+              </TransitionLink>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
               {PROJECTS.slice(0, 4).map((project, index) => (
-                <Link
+                <TransitionLink
                   key={project.id}
                   href={`/projects/${project.id}`}
                   aria-label={`Read the ${project.title} case study`}
                 >
                   <ProjectCard project={project} index={index} />
-                </Link>
+                </TransitionLink>
               ))}
             </div>
           </div>
