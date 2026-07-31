@@ -3,6 +3,8 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
+import SplitTextReveal from "@/components/ui/SplitTextReveal";
+
 export default function About() {
   const targetRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -58,8 +60,10 @@ export default function About() {
             Expertise &amp; Story
           </h2>
           <h3 className="text-4xl md:text-5xl font-serif mb-8 leading-tight">
-            Based in Uzbekistan,
-            <br /> Working Globally.
+            <SplitTextReveal
+              text={"Based in Uzbekistan,\nWorking Globally."}
+              stagger={0.055}
+            />
           </h3>
           <div className="space-y-6 text-white/60 text-lg leading-relaxed">
             <p>

@@ -7,6 +7,7 @@ import PinnedServices from "@/components/ui/PinnedServices";
 import ProjectCard from "@/components/ui/ProjectCard";
 import Contact from "@/components/ui/Contact";
 import Signature from "@/components/ui/Signature";
+import SplitTextReveal from "@/components/ui/SplitTextReveal";
 import { PROJECTS, SERVICES } from "@/lib/projects";
 import { SITE, SAME_AS, absoluteUrl } from "@/lib/site";
 
@@ -86,7 +87,7 @@ export default function HomePage() {
                   Selected Work
                 </h2>
                 <h3 className="text-4xl md:text-5xl font-serif leading-tight">
-                  Notable Successes.
+                  <SplitTextReveal text="Notable Successes." />
                 </h3>
               </div>
               <Link
