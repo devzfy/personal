@@ -8,8 +8,10 @@ import ProjectCard from "@/components/ui/ProjectCard";
 import Contact from "@/components/ui/Contact";
 import Signature from "@/components/ui/Signature";
 import SplitTextReveal from "@/components/ui/SplitTextReveal";
-import { PROJECTS, SERVICES } from "@/lib/projects";
-import { SITE, SAME_AS, absoluteUrl } from "@/lib/site";
+import JsonLd from "@/components/JsonLd";
+import { PROJECTS } from "@/lib/projects";
+import { homeGraph } from "@/lib/schema";
+import { SITE, absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `${SITE.name} — ${SITE.jobTitle}`,
@@ -39,40 +41,10 @@ export const metadata: Metadata = {
   },
 };
 
-/** schema.org Person, emitted as JSON-LD in the static HTML. */
-const personSchema = {
-  "@context": "https://schema.org",
-  "@type": "Person",
-  "@id": absoluteUrl("/#person"),
-  name: SITE.name,
-  alternateName: "devzfy",
-  url: SITE.url,
-  image: absoluteUrl(SITE.ogImage.url),
-  jobTitle: SITE.jobTitle,
-  description: SITE.description,
-  email: `mailto:${SITE.email}`,
-  sameAs: SAME_AS,
-  address: {
-    "@type": "PostalAddress",
-    addressLocality: SITE.location.city,
-    addressCountry: SITE.location.countryCode,
-  },
-  knowsAbout: SERVICES.map((service) => service.title),
-  knowsLanguage: ["en", "uz", "ru"],
-  worksFor: {
-    "@type": "Organization",
-    name: "Independent / Freelance",
-  },
-};
-
 export default function HomePage() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        // JSON.stringify output of a local constant — no user input involved.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
-      />
+      <JsonLd data={homeGraph()} />
 
       <div className="flex flex-col">
         <Hero />

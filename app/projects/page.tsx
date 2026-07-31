@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import TransitionLink from "@/components/ui/TransitionLink";
 
+import JsonLd from "@/components/JsonLd";
 import ArchiveHeader from "@/components/ui/ArchiveHeader";
 import ProjectCard from "@/components/ui/ProjectCard";
 import { PROJECTS } from "@/lib/projects";
+import { archiveGraph } from "@/lib/schema";
 import { SITE, absoluteUrl } from "@/lib/site";
 
 const title = "Archive";
@@ -39,6 +41,8 @@ export const metadata: Metadata = {
 export default function ProjectsPage() {
   return (
     <div className="pt-40 pb-32 px-6 md:px-12 bg-black min-h-screen">
+      <JsonLd data={archiveGraph()} />
+
       <div className="max-w-7xl mx-auto">
         <ArchiveHeader />
 

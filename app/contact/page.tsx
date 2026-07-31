@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
+import JsonLd from "@/components/JsonLd";
 import ContactContent from "@/components/ui/ContactContent";
+import { contactGraph } from "@/lib/schema";
 import { SITE, absoluteUrl } from "@/lib/site";
 
 const title = "Contact";
@@ -34,5 +36,10 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
-  return <ContactContent />;
+  return (
+    <>
+      <JsonLd data={contactGraph()} />
+      <ContactContent />
+    </>
+  );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
+import JsonLd from "@/components/JsonLd";
 import FadeIn from "@/components/ui/FadeIn";
 import TransitionLink from "@/components/ui/TransitionLink";
 import {
@@ -11,6 +12,7 @@ import {
   getProjectSlugs,
   parseMetric,
 } from "@/lib/projects";
+import { projectGraph } from "@/lib/schema";
 import { SITE, absoluteUrl } from "@/lib/site";
 
 interface PageProps {
@@ -94,32 +96,10 @@ export default async function CaseStudyPage({ params }: PageProps) {
     Boolean(section.copy),
   );
 
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Work", item: SITE.url },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Archive",
-        item: absoluteUrl("/projects"),
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: project.title,
-        item: absoluteUrl(`/projects/${project.id}`),
-      },
-    ],
-  };
 
   return (
     <div className="pt-40 pb-32 px-6 md:px-12 bg-black min-h-screen">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
+      <JsonLd data={projectGraph(project)} />
 
       <article className="max-w-4xl mx-auto">
         <FadeIn>
