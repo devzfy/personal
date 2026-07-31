@@ -3,8 +3,19 @@
 import type { CSSProperties, ReactNode } from "react";
 import { useRef, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { motion, useScroll, useTransform, type Variants } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  type MotionValue,
+  type Variants,
+} from "framer-motion";
 
+import {
+  HERO_SCROLL_VH,
+  HERO_STAGE_COUNT,
+  heroStageKeyframes,
+} from "@/lib/heroStages";
 import { detectSceneQuality } from "@/lib/sceneQuality";
 
 // WebGL cannot be server-rendered, so the canvas is client-only.
@@ -27,6 +38,15 @@ const PARTICLE_STAGES = [
   "Where Precision\nMeets Emotion.",
   "Continue\nExploring",
 ] as const;
+
+// A stage the particles can spell has to be a stage the copy describes, so the
+// two counts are the same thing. Kept as an assertion rather than a comment
+// because the letterform attributes are packed to exactly four targets.
+if (PARTICLE_STAGES.length !== HERO_STAGE_COUNT) {
+  throw new Error(
+    `Hero copy has ${PARTICLE_STAGES.length} stages but HERO_STAGE_COUNT is ${HERO_STAGE_COUNT}`,
+  );
+}
 
 /**
  * Visually hidden, still announced. Applied inline rather than via Tailwind's
@@ -61,6 +81,38 @@ function StageCopy({
   return <div style={hidden ? VISUALLY_HIDDEN : undefined}>{children}</div>;
 }
 
+/**
+ * One stage of copy, positioned and animated on the shared stage boundaries.
+ *
+ * The keyframes come from lib/heroStages rather than being written per stage,
+ * which is the fix for the two problems this had: the ranges were typed out four
+ * times over with unequal spans (0.25 / 0.30 / 0.30 / 0.15 of the section, so the
+ * closing stage got half the scroll of the middle two), and they were a second,
+ * independent copy of the boundaries the particle field was using.
+ */
+function StageLayer({
+  progress,
+  stage,
+  className,
+  children,
+}: {
+  progress: MotionValue<number>;
+  stage: number;
+  className: string;
+  children: ReactNode;
+}) {
+  const keyframes = heroStageKeyframes(stage);
+  const opacity = useTransform(progress, keyframes.times, keyframes.opacity);
+  const scale = useTransform(progress, keyframes.times, keyframes.scale);
+  const y = useTransform(progress, keyframes.times, keyframes.y);
+
+  return (
+    <motion.div style={{ opacity, scale, y }} className={className}>
+      {children}
+    </motion.div>
+  );
+}
+
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollValue, setScrollValue] = useState(0);
@@ -87,40 +139,8 @@ export default function Hero() {
     return scrollYProgress.on("change", (v) => setScrollValue(v));
   }, [scrollYProgress]);
 
-  // Stage 1: Initial Headline (0 - 0.2)
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
-  const titleScale = useTransform(scrollYProgress, [0, 0.15], [1, 0.8]);
-  const titleY = useTransform(scrollYProgress, [0, 0.15], [0, -100]);
-
-  // Stage 2: "Whatever it is — we make it real." (0.25 - 0.45)
-  const s2Opacity = useTransform(
-    scrollYProgress,
-    [0.25, 0.35, 0.45],
-    [0, 1, 0],
-  );
-  const s2Scale = useTransform(
-    scrollYProgress,
-    [0.25, 0.35, 0.45],
-    [0.8, 1, 1.2],
-  );
-  const s2Y = useTransform(scrollYProgress, [0.25, 0.35, 0.45], [50, 0, -50]);
-
-  // Stage 3: Mission Statement (0.55 - 0.75)
-  const s3Opacity = useTransform(
-    scrollYProgress,
-    [0.55, 0.65, 0.75],
-    [0, 1, 0],
-  );
-  const s3Scale = useTransform(
-    scrollYProgress,
-    [0.55, 0.65, 0.75],
-    [0.9, 1, 1.1],
-  );
-  const s3Y = useTransform(scrollYProgress, [0.55, 0.65, 0.75], [50, 0, -50]);
-
-  // Stage 4: Call to Action (0.85 - 1.0)
-  const ctaOpacity = useTransform(scrollYProgress, [0.85, 0.95], [0, 1]);
-  const ctaY = useTransform(scrollYProgress, [0.85, 0.95], [20, 0]);
+  // Stage transforms now live in StageLayer, on boundaries shared with the
+  // particle field. See lib/heroStages.
 
   // Entrance Animations
   const containerVariants: Variants = {
@@ -153,7 +173,14 @@ export default function Hero() {
   const headlineText = "Crafting Products That Resonate";
 
   return (
-    <section ref={containerRef} className="relative h-[500vh] bg-black">
+    <section
+      ref={containerRef}
+      // Tailwind cannot interpolate a runtime value into an arbitrary class, and
+      // the height has to come from the same constant the stage division does —
+      // an h-[500vh] literal here is how the two get to disagree.
+      style={{ height: `${HERO_SCROLL_VH}vh` }}
+      className="relative bg-black"
+    >
       <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
         <ParticleScene
           progress={scrollValue}
@@ -161,8 +188,9 @@ export default function Hero() {
         />
 
         {/* Stage 1: Initial Hero Texts */}
-        <motion.div
-          style={{ opacity: titleOpacity, scale: titleScale, y: titleY }}
+        <StageLayer
+          progress={scrollYProgress}
+          stage={0}
           className="absolute z-10 max-w-5xl w-full text-center px-6 pointer-events-none"
         >
           <StageCopy hidden={particleText}>
@@ -194,11 +222,12 @@ export default function Hero() {
             ))}
           </motion.h1>
           </StageCopy>
-        </motion.div>
+        </StageLayer>
 
         {/* Stage 2: Vision Statement */}
-        <motion.div
-          style={{ opacity: s2Opacity, y: s2Y, scale: s2Scale }}
+        <StageLayer
+          progress={scrollYProgress}
+          stage={1}
           className="absolute z-10 max-w-4xl w-full text-center px-6 pointer-events-none"
         >
           <StageCopy hidden={particleText}>
@@ -207,11 +236,12 @@ export default function Hero() {
               <span className="text-red-600 italic">real.</span>
             </h2>
           </StageCopy>
-        </motion.div>
+        </StageLayer>
 
         {/* Stage 3: Mission Statement */}
-        <motion.div
-          style={{ opacity: s3Opacity, y: s3Y, scale: s3Scale }}
+        <StageLayer
+          progress={scrollYProgress}
+          stage={2}
           className="absolute z-10 max-w-4xl w-full text-center px-6 pointer-events-none"
         >
           <StageCopy hidden={particleText}>
@@ -220,11 +250,12 @@ export default function Hero() {
               <span className="text-red-600 italic">Emotion.</span>
             </h2>
           </StageCopy>
-        </motion.div>
+        </StageLayer>
 
         {/* Stage 4: CTA */}
-        <motion.div
-          style={{ opacity: ctaOpacity, y: ctaY }}
+        <StageLayer
+          progress={scrollYProgress}
+          stage={3}
           className="absolute z-10 text-center px-6 pointer-events-none"
         >
           <StageCopy hidden={particleText}>
@@ -239,7 +270,7 @@ export default function Hero() {
               className="w-[1px] h-20 bg-gradient-to-b from-red-600 to-transparent"
             />
           </div>
-        </motion.div>
+        </StageLayer>
 
         {/* Dynamic Vignette and Gradients */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black pointer-events-none" />

@@ -11,7 +11,6 @@ import {
   createGrid,
   createSphere,
   morphFromProgress,
-  textFormationFromProgress,
 } from "./particleShapes";
 import {
   PARTICLE_FRAGMENT_SHADER,
@@ -19,6 +18,7 @@ import {
 } from "./shaders/particle";
 import { TRAIL_FRAGMENT_SHADER, TRAIL_VERTEX_SHADER } from "./shaders/trail";
 import { resolveDisplayFont, sampleTextPoints } from "./textPoints";
+import { useTextFormation } from "./useTextFormation";
 
 /**
  * The postprocessing bundle is the heaviest thing in this scene, so it is split
@@ -134,6 +134,14 @@ function ParticleField({ progress, quality, textStages }: ParticleFieldProps) {
   const textEnabled = quality.enableTextTypography && Boolean(textStages);
   const text = useTextBuffers(textStages, quality.particleCount, textEnabled);
 
+  /**
+   * Letterform transitions run on their own clock. Scroll decides which stage is
+   * current and when a handover begins; the tween decides how fast it plays, so
+   * the morph looks the same whether the boundary was crossed slowly or flicked
+   * past. Read once per frame — it is a ref behind the scenes, not state.
+   */
+  const readFormation = useTextFormation(progress, textEnabled);
+
   // One buffer per formation. Three cover four phases, because the last leg
   // morphs back to the position attribute.
   const shapes = useMemo(() => {
@@ -191,8 +199,22 @@ function ParticleField({ progress, quality, textStages }: ParticleFieldProps) {
     }
     const intro = text ? introRef.current * introRef.current : 0;
 
-    const formation = textFormationFromProgress(progress);
+    const formation = readFormation();
     const textMorph = text ? formation.morph * intro : 0;
+
+    // TEMP-PROBE-START (verification instrumentation, remove)
+    {
+      const w = window as unknown as { __heroProbe?: number[][] };
+      if (w.__heroProbe) {
+        w.__heroProbe.push([
+          performance.now(),
+          textMorph,
+          formation.stage,
+          progress,
+        ]);
+      }
+    }
+    // TEMP-PROBE-END
 
     // Rotation and scale are eased to rest as text assembles. A shader cannot
     // undo an accumulating object rotation, and a spinning, growing letterform

@@ -13,6 +13,12 @@
  * particles snapping into a lattice.
  */
 
+import {
+  HERO_STAGE_COUNT,
+  HERO_STAGE_SPAN,
+  heroStageStart,
+} from "@/lib/heroStages";
+
 /** The existing formation: a shell between r=1.4 and r=2.0. */
 export function createSphere(count: number): Float32Array {
   const out = new Float32Array(count * 3);
@@ -70,19 +76,27 @@ export function createGrid(count: number): Float32Array {
 }
 
 /**
- * Scroll-progress windows during which each morph runs, in hero-progress units.
+ * Scroll-progress windows during which each shape morph runs.
  *
- * The hero is 500vh, so 0.20 of progress is 100vh — about one viewport of
- * scroll per morph, which is what makes it read as a transition rather than a
- * snap. The windows sit in the gaps between the hero's four text stages
- * (visible at 0-0.15, 0.25-0.45, 0.55-0.75, 0.85-1.0), so the field reforms
- * while the copy is swapping and holds still while a line is being read.
+ * Derived from the shared stage division rather than written out, so they cannot
+ * drift from the boundaries the letterforms use. One window per boundary, each a
+ * full stage span wide and centred on the boundary — the field reforms while the
+ * copy is swapping and holds still while a line is being read. At 500vh a span
+ * is 125vh, so a morph still takes about a viewport of scroll, which is what
+ * makes it read as a transition rather than a snap.
+ *
+ * Unlike the letterform morph this one stays scrubbed. It is a slow ambient
+ * change of the idle formation with no readable end state, so consuming it
+ * quickly on a fast scroll costs nothing.
  */
-const MORPH_WINDOWS: ReadonlyArray<readonly [number, number]> = [
-  [0.13, 0.33],
-  [0.43, 0.63],
-  [0.73, 0.93],
-];
+const MORPH_WINDOWS: ReadonlyArray<readonly [number, number]> = Array.from(
+  { length: HERO_STAGE_COUNT - 1 },
+  (_, i) => {
+    const boundary = heroStageStart(i + 1);
+    const half = HERO_STAGE_SPAN / 2;
+    return [boundary - half, boundary + half] as const;
+  },
+);
 
 /** Single broad window for the reduced 2-shape sequence. */
 const SIMPLE_WINDOW: readonly [number, number] = [0.2, 0.8];
@@ -109,71 +123,10 @@ export function morphFromProgress(progress: number, phases: number): number {
 }
 
 /**
- * The hero's four text stages, as the scroll-progress ranges over which each is
- * held. These are the same boundaries Hero.tsx already uses to drive its Framer
- * Motion opacity for the DOM copy — deliberately shared rather than duplicated,
- * so the particle typography and the (visually hidden) DOM text can never drift
- * out of sync.
+ * Note: the letterform formation used to live here as
+ * `textFormationFromProgress`, a pure function of scroll progress. It moved to
+ * `useTextFormation` because a pure function of progress can only ever produce a
+ * scrubbed transition, and a scrubbed disperse-and-reform is over in two frames
+ * when the user flicks past a boundary. The stage division it was built on now
+ * lives in lib/heroStages so the DOM copy shares it.
  */
-export const HERO_STAGE_HOLDS: ReadonlyArray<readonly [number, number]> = [
-  [0.0, 0.15],
-  [0.25, 0.45],
-  [0.55, 0.75],
-  [0.85, 1.0],
-];
-
-export interface TextFormation {
-  /** 0 = idle formation, 1 = fully assembled letterforms. */
-  morph: number;
-  /** Which stage's letterform is active, 0-3. */
-  stage: number;
-  /** 0..1, peaks halfway through a transition. */
-  scatter: number;
-}
-
-/**
- * Maps hero progress onto the text formation state.
- *
- * Inside a stage's hold the letterform is fully assembled. Between two stages
- * the morph dips to 0 and back to 1, and the active stage index flips exactly at
- * the midpoint — the moment morph is 0 and the particles are entirely in the
- * idle formation, so swapping which letterform is targeted is invisible. That is
- * what avoids letterform A visibly sliding into letterform B.
- */
-export function textFormationFromProgress(progress: number): TextFormation {
-  const last = HERO_STAGE_HOLDS.length - 1;
-
-  for (let i = 0; i <= last; i++) {
-    const hold = HERO_STAGE_HOLDS[i];
-    if (!hold) continue;
-    if (progress >= hold[0] && progress <= hold[1]) {
-      return { morph: 1, stage: i, scatter: 0 };
-    }
-  }
-
-  for (let i = 0; i < last; i++) {
-    const current = HERO_STAGE_HOLDS[i];
-    const next = HERO_STAGE_HOLDS[i + 1];
-    if (!current || !next) continue;
-
-    const from = current[1];
-    const to = next[0];
-    if (progress <= from || progress >= to) continue;
-
-    const mid = (from + to) / 2;
-    const half = Math.max(1e-4, mid - from);
-    // 1 at either edge of the gap, 0 at the midpoint.
-    const edge = Math.min(1, Math.abs(progress - mid) / half);
-
-    return {
-      morph: edge * edge * (3 - 2 * edge), // smoothstep
-      stage: progress < mid ? i : i + 1,
-      scatter: 1 - edge,
-    };
-  }
-
-  // Past the final hold (or before the first), stay on the nearest letterform.
-  return progress < 0.5
-    ? { morph: 1, stage: 0, scatter: 0 }
-    : { morph: 1, stage: last, scatter: 0 };
-}
