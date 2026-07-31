@@ -1,20 +1,18 @@
+"use client";
 
-import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Points, PointMaterial } from '@react-three/drei';
-import * as THREE from 'three';
-
-const Group = 'group' as any;
-const AmbientLight = 'ambientLight' as any;
+import { useRef, useMemo } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Points, PointMaterial } from "@react-three/drei";
+import * as THREE from "three";
 
 interface ParticleFieldProps {
   progress: number;
 }
 
-const ParticleField: React.FC<ParticleFieldProps> = ({ progress }) => {
+function ParticleField({ progress }: ParticleFieldProps) {
   const ref = useRef<THREE.Points>(null!);
-  const materialRef = useRef<any>(null!);
-  
+  const materialRef = useRef<THREE.PointsMaterial>(null!);
+
   const points = useMemo(() => {
     const p = new Float32Array(4000 * 3);
     for (let i = 0; i < 4000; i++) {
@@ -33,10 +31,10 @@ const ParticleField: React.FC<ParticleFieldProps> = ({ progress }) => {
 
     // Base rotation influenced by scroll progress
     // Speed increases during the middle transition (0.3 to 0.7)
-    const speedMultiplier = 1 + (Math.sin(progress * Math.PI) * 5);
+    const speedMultiplier = 1 + Math.sin(progress * Math.PI) * 5;
     ref.current.rotation.x += 0.001 * speedMultiplier;
     ref.current.rotation.y += 0.0015 * speedMultiplier;
-    
+
     // Mouse interaction remains subtle
     const targetX = state.mouse.x * 0.1;
     const targetY = state.mouse.y * 0.1;
@@ -50,18 +48,20 @@ const ParticleField: React.FC<ParticleFieldProps> = ({ progress }) => {
       const g = THREE.MathUtils.lerp(0, 1, progress);
       const b = THREE.MathUtils.lerp(0, 1, progress);
       materialRef.current.color.setRGB(r, g, b);
-      
+
       // Pulse size based on scroll
-      materialRef.current.size = 0.003 + (Math.sin(progress * Math.PI) * 0.005);
+      materialRef.current.size = 0.003 + Math.sin(progress * Math.PI) * 0.005;
     }
-    
+
     // Scale the whole sphere as we scroll deeper
     const targetScale = 1 + progress * 0.5;
-    ref.current.scale.setScalar(THREE.MathUtils.lerp(ref.current.scale.x, targetScale, 0.1));
+    ref.current.scale.setScalar(
+      THREE.MathUtils.lerp(ref.current.scale.x, targetScale, 0.1),
+    );
   });
 
   return (
-    <Group rotation={[0, 0, Math.PI / 4]}>
+    <group rotation={[0, 0, Math.PI / 4]}>
       <Points ref={ref} positions={points} stride={3} frustumCulled={false}>
         <PointMaterial
           ref={materialRef}
@@ -70,26 +70,34 @@ const ParticleField: React.FC<ParticleFieldProps> = ({ progress }) => {
           size={0.003}
           sizeAttenuation={true}
           depthWrite={false}
-          opacity={0.4 + (progress * 0.4)}
+          opacity={0.4 + progress * 0.4}
         />
       </Points>
-    </Group>
+    </group>
   );
-};
+}
 
-interface ThreeCanvasProps {
+interface ParticleSceneProps {
   progress?: number;
 }
 
-const ThreeCanvas: React.FC<ThreeCanvasProps> = ({ progress = 0 }) => {
+/**
+ * Ported 1:1 from the old components/ThreeCanvas.tsx.
+ *
+ * The original needed `const Group = 'group' as any` casts to dodge missing R3F
+ * JSX types; with @react-three/fiber v9 the intrinsic elements are typed, so the
+ * casts are gone and the refs are properly typed instead of `any`.
+ *
+ * Always import this through next/dynamic with { ssr: false } — a WebGL canvas
+ * cannot be server-rendered.
+ */
+export default function ParticleScene({ progress = 0 }: ParticleSceneProps) {
   return (
     <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
       <Canvas camera={{ position: [0, 0, 1.5] }}>
-        <AmbientLight intensity={0.8} />
+        <ambientLight intensity={0.8} />
         <ParticleField progress={progress} />
       </Canvas>
     </div>
   );
-};
-
-export default ThreeCanvas;
+}

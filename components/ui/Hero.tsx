@@ -1,8 +1,16 @@
-import React, { useRef, useState, useEffect } from "react";
-import { motion, useScroll, useTransform, Variants } from "framer-motion";
-import ThreeCanvas from "./ThreeCanvas";
+"use client";
 
-const Hero: React.FC = () => {
+import { useRef, useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+import { motion, useScroll, useTransform, type Variants } from "framer-motion";
+
+// WebGL cannot be server-rendered, so the canvas is client-only.
+const ParticleScene = dynamic(
+  () => import("@/components/three/ParticleScene"),
+  { ssr: false },
+);
+
+export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollValue, setScrollValue] = useState(0);
 
@@ -11,9 +19,11 @@ const Hero: React.FC = () => {
     offset: ["start start", "end end"],
   });
 
-  // Sync scroll progress to state to pass to ThreeCanvas
+  // Sync scroll progress to state to pass to ParticleScene.
+  // `MotionValue.onChange` was removed in Framer Motion 11; `.on("change", …)`
+  // is the current equivalent and returns the same unsubscribe function.
   useEffect(() => {
-    return scrollYProgress.onChange((v) => setScrollValue(v));
+    return scrollYProgress.on("change", (v) => setScrollValue(v));
   }, [scrollYProgress]);
 
   // Stage 1: Initial Headline (0 - 0.2)
@@ -84,7 +94,7 @@ const Hero: React.FC = () => {
   return (
     <section ref={containerRef} className="relative h-[500vh] bg-black">
       <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
-        <ThreeCanvas progress={scrollValue} />
+        <ParticleScene progress={scrollValue} />
 
         {/* Stage 1: Initial Hero Texts */}
         <motion.div
@@ -165,6 +175,4 @@ const Hero: React.FC = () => {
       </div>
     </section>
   );
-};
-
-export default Hero;
+}

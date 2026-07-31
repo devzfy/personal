@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/*
+ * Ported from the inline <style> block in the old index.html.
+ * The old site loaded Tailwind from cdn.tailwindcss.com and then overrode
+ * `.font-serif` with a hand-written rule. Here the same result is achieved
+ * properly, by pointing Tailwind's own font tokens at the next/font faces:
+ *   font-sans  -> Inter            (body default)
+ *   font-serif -> Playfair Display (all display type)
+ */
+@theme {
+  --font-sans: var(--font-inter), sans-serif;
+  --font-serif: var(--font-playfair), serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #000;
+  color: #fff;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #000;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Lenis — required recommended styles. Hide scrollbar for Lenis if desired,
+   but standard is fine for accessibility. */
+html.lenis {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}

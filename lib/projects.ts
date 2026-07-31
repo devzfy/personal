@@ -1,5 +1,4 @@
-import React from "react";
-import { Project, Service } from "./types";
+import type { Project, Service } from "./types";
 
 export const PROJECTS: Project[] = [
   {
@@ -7,6 +6,8 @@ export const PROJECTS: Project[] = [
     title: "Global E-learning Platform",
     description:
       "Engineered the frontend of a large-scale education platform for 2.5 million+ learners.",
+    longDescription:
+      "Frontend engineering for an education platform serving more than 2.5 million active learners. The work centred on the Next.js and TypeScript application layer — component architecture, state management with Redux, motion design with Framer Motion — together with the performance work that brought load times down by 30%.",
     techStack: [
       "Next.js",
       "TypeScript",
@@ -25,6 +26,8 @@ export const PROJECTS: Project[] = [
     title: "E-commerce Web App Overhaul",
     description:
       "Revamped a legacy e-commerce site with Next.js and modern UI components, integrating Stripe.",
+    longDescription:
+      "A full overhaul of a legacy storefront. The old frontend was replaced with a Next.js application built on a modern component architecture using shadcn/ui, with the Stripe API wired in for multi-method payments and a checkout flow rebuilt to complete 50% faster.",
     techStack: ["React", "Next.js", "Stripe API", "shadcn/ui", "PostgreSQL"],
     metrics: [
       "Modern component architecture",
@@ -37,6 +40,8 @@ export const PROJECTS: Project[] = [
     title: "Real-time Logistics Dashboard",
     description:
       "Handles 5,000+ daily operations and ~1,000 concurrent users with real-time data visualization.",
+    longDescription:
+      "A real-time operations dashboard handling over 5,000 daily operations for roughly 1,000 concurrent users. Live asset positions stream in over Socket.io and are visualised with D3.js, alongside a built-in predictive analytics view and a real-time chat channel between customers and the company. Data latency dropped by 60%.",
     techStack: [
       "React",
       "Socket.io",
@@ -57,12 +62,14 @@ export const PROJECTS: Project[] = [
     title: "Enterprise Admin Dashboard",
     description:
       "Internal tools managing 10k+ records with automated workflows to cut manual operations.",
+    longDescription:
+      "Internal tooling for managing more than 10,000 customer records. Twelve core business workflows were automated, halving manual data entry, and a real-time chat channel between leads and admins was built on Socket.io. Data is surfaced through Chart.js dashboards with TanStack Query handling server state.",
     techStack: ["React", "TanStack Query", "Tailwind", "Chart.js", "Socket.io"],
     metrics: [
       "50% less manual data entry",
       "Managed 10,000+ customer records",
       "Automated 12 core business workflows",
-      "Buil a real-time chat between leads and admins",
+      "Built a real-time chat between leads and admins",
     ],
   },
 ];
@@ -89,7 +96,6 @@ export const SERVICES: Service[] = [
       "Building robust Telegram bots with Node.js and Telegraf – automated, secure, and fast messaging workflows.",
     icon: "M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z",
   },
-
   {
     id: "ai-integration",
     title: "AI Integration",
@@ -119,3 +125,17 @@ export const SERVICES: Service[] = [
     icon: "M13 10V3L4 14h7v7l9-11h-7z",
   },
 ];
+
+/** Slugs for /projects/[slug] — driven by Project.id. */
+export function getProjectSlugs(): string[] {
+  return PROJECTS.map((project) => project.id);
+}
+
+export function getProjectBySlug(slug: string): Project | undefined {
+  return PROJECTS.find((project) => project.id === slug);
+}
+
+/** 1-based position, used for the "Case Study 0N" label and prev/next nav. */
+export function getProjectIndex(slug: string): number {
+  return PROJECTS.findIndex((project) => project.id === slug);
+}

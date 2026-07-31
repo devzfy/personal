@@ -1,21 +1,45 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# devzfy.uz — Javokhir Shokirov
 
-# Run and deploy your AI Studio app
+Personal portfolio. Next.js 16 (App Router), React 19, TypeScript strict, Tailwind CSS v4.
 
-This contains everything you need to run your app locally.
+## Run locally
 
-View your app in AI Studio: https://ai.studio/apps/drive/1UYBoNCQCDJInwo9jJH78iHomhMyErfT0
+```bash
+npm install
+npm run dev      # http://localhost:3000
+```
 
-## Run Locally
+| Script      | What it does                              |
+| ----------- | ----------------------------------------- |
+| `dev`       | Dev server (Turbopack)                    |
+| `build`     | Production build, prerenders every route  |
+| `start`     | Serve the production build                |
+| `typecheck` | `tsc --noEmit`                            |
 
-**Prerequisites:**  Node.js
+## Structure
 
+```
+app/
+  layout.tsx              root layout: fonts, metadata, Lenis + loader + nav
+  page.tsx                Home — Hero, About, PinnedServices, Selected Work, Contact
+  projects/page.tsx       Archive
+  projects/[slug]/page.tsx  Case study (generateStaticParams over PROJECTS)
+  contact/page.tsx        Contact form
+  sitemap.ts / robots.ts
+components/
+  ui/                     Presentational sections
+  three/ParticleScene.tsx R3F particle field — always via next/dynamic({ ssr: false })
+  providers/              Lenis smooth scroll, per-route fade
+lib/
+  projects.ts             PROJECTS + SERVICES data and slug helpers
+  site.ts                 Identity, social handles and SEO constants
+  types.ts                Project / Service interfaces
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
-# personal
+`lib/site.ts` is the single source of truth for the canonical URL, social handles
+and OG image — metadata, the Person JSON-LD and the sitemap all read from it.
+
+## Adding a project
+
+Append to `PROJECTS` in `lib/projects.ts`. The `id` becomes the URL slug, and the
+case study page, archive card, sitemap entry and static params follow automatically.
