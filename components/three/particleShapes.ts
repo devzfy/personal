@@ -107,3 +107,73 @@ export function morphFromProgress(progress: number, phases: number): number {
   }
   return morph;
 }
+
+/**
+ * The hero's four text stages, as the scroll-progress ranges over which each is
+ * held. These are the same boundaries Hero.tsx already uses to drive its Framer
+ * Motion opacity for the DOM copy — deliberately shared rather than duplicated,
+ * so the particle typography and the (visually hidden) DOM text can never drift
+ * out of sync.
+ */
+export const HERO_STAGE_HOLDS: ReadonlyArray<readonly [number, number]> = [
+  [0.0, 0.15],
+  [0.25, 0.45],
+  [0.55, 0.75],
+  [0.85, 1.0],
+];
+
+export interface TextFormation {
+  /** 0 = idle formation, 1 = fully assembled letterforms. */
+  morph: number;
+  /** Which stage's letterform is active, 0-3. */
+  stage: number;
+  /** 0..1, peaks halfway through a transition. */
+  scatter: number;
+}
+
+/**
+ * Maps hero progress onto the text formation state.
+ *
+ * Inside a stage's hold the letterform is fully assembled. Between two stages
+ * the morph dips to 0 and back to 1, and the active stage index flips exactly at
+ * the midpoint — the moment morph is 0 and the particles are entirely in the
+ * idle formation, so swapping which letterform is targeted is invisible. That is
+ * what avoids letterform A visibly sliding into letterform B.
+ */
+export function textFormationFromProgress(progress: number): TextFormation {
+  const last = HERO_STAGE_HOLDS.length - 1;
+
+  for (let i = 0; i <= last; i++) {
+    const hold = HERO_STAGE_HOLDS[i];
+    if (!hold) continue;
+    if (progress >= hold[0] && progress <= hold[1]) {
+      return { morph: 1, stage: i, scatter: 0 };
+    }
+  }
+
+  for (let i = 0; i < last; i++) {
+    const current = HERO_STAGE_HOLDS[i];
+    const next = HERO_STAGE_HOLDS[i + 1];
+    if (!current || !next) continue;
+
+    const from = current[1];
+    const to = next[0];
+    if (progress <= from || progress >= to) continue;
+
+    const mid = (from + to) / 2;
+    const half = Math.max(1e-4, mid - from);
+    // 1 at either edge of the gap, 0 at the midpoint.
+    const edge = Math.min(1, Math.abs(progress - mid) / half);
+
+    return {
+      morph: edge * edge * (3 - 2 * edge), // smoothstep
+      stage: progress < mid ? i : i + 1,
+      scatter: 1 - edge,
+    };
+  }
+
+  // Past the final hold (or before the first), stay on the nearest letterform.
+  return progress < 0.5
+    ? { morph: 1, stage: 0, scatter: 0 }
+    : { morph: 1, stage: last, scatter: 0 };
+}

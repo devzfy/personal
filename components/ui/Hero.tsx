@@ -1,8 +1,11 @@
 "use client";
 
+import type { CSSProperties, ReactNode } from "react";
 import { useRef, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { motion, useScroll, useTransform, type Variants } from "framer-motion";
+
+import { detectSceneQuality } from "@/lib/sceneQuality";
 
 // WebGL cannot be server-rendered, so the canvas is client-only.
 const ParticleScene = dynamic(
@@ -10,9 +13,67 @@ const ParticleScene = dynamic(
   { ssr: false },
 );
 
+/**
+ * The same four phrases as the DOM copy below, with explicit line breaks.
+ *
+ * Line breaks are hand-placed rather than auto-wrapped because legibility of
+ * particle typography is driven by glyph size: fewer characters per line means
+ * bigger glyphs and more points each. Content matches the DOM exactly, so the
+ * visible text and the text a crawler reads never diverge.
+ */
+const PARTICLE_STAGES = [
+  "Crafting\nProducts That\nResonate",
+  "Whatever it is —\nwe make it real.",
+  "Where Precision\nMeets Emotion.",
+  "Continue\nExploring",
+] as const;
+
+/**
+ * Visually hidden, still announced. Applied inline rather than via Tailwind's
+ * `sr-only` because these blocks already carry w-full / absolute utilities that
+ * would win or lose against it depending on CSS emission order, which is not
+ * something to leave to chance.
+ */
+const VISUALLY_HIDDEN: CSSProperties = {
+  position: "absolute",
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: "hidden",
+  clipPath: "inset(50%)",
+  whiteSpace: "nowrap",
+  border: 0,
+};
+
+/**
+ * Wraps a stage's copy. When the particles are spelling it out, the text stays
+ * in the DOM for screen readers and crawlers — step 1's SEO work depends on the
+ * h1 being real content — but is taken off screen.
+ */
+function StageCopy({
+  hidden,
+  children,
+}: {
+  hidden: boolean;
+  children: ReactNode;
+}) {
+  return <div style={hidden ? VISUALLY_HIDDEN : undefined}>{children}</div>;
+}
+
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollValue, setScrollValue] = useState(0);
+
+  /**
+   * Whether the particles take over the copy. Resolved after mount, so the
+   * server still renders visible text — that keeps the no-JS and crawler view
+   * intact and avoids a hydration mismatch.
+   */
+  const [particleText, setParticleText] = useState(false);
+  useEffect(() => {
+    setParticleText(detectSceneQuality().enableTextTypography);
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -94,13 +155,17 @@ export default function Hero() {
   return (
     <section ref={containerRef} className="relative h-[500vh] bg-black">
       <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
-        <ParticleScene progress={scrollValue} />
+        <ParticleScene
+          progress={scrollValue}
+          textStages={particleText ? PARTICLE_STAGES : undefined}
+        />
 
         {/* Stage 1: Initial Hero Texts */}
         <motion.div
           style={{ opacity: titleOpacity, scale: titleScale, y: titleY }}
           className="absolute z-10 max-w-5xl w-full text-center px-6 pointer-events-none"
         >
+          <StageCopy hidden={particleText}>
           <motion.span
             variants={nameVariants}
             initial="hidden"
@@ -128,6 +193,7 @@ export default function Hero() {
               </span>
             ))}
           </motion.h1>
+          </StageCopy>
         </motion.div>
 
         {/* Stage 2: Vision Statement */}
@@ -135,10 +201,12 @@ export default function Hero() {
           style={{ opacity: s2Opacity, y: s2Y, scale: s2Scale }}
           className="absolute z-10 max-w-4xl w-full text-center px-6 pointer-events-none"
         >
-          <h2 className="text-4xl md:text-6xl font-serif leading-tight">
-            Whatever it is — <br /> we make it{" "}
-            <span className="text-red-600 italic">real.</span>
-          </h2>
+          <StageCopy hidden={particleText}>
+            <h2 className="text-4xl md:text-6xl font-serif leading-tight">
+              Whatever it is — <br /> we make it{" "}
+              <span className="text-red-600 italic">real.</span>
+            </h2>
+          </StageCopy>
         </motion.div>
 
         {/* Stage 3: Mission Statement */}
@@ -146,10 +214,12 @@ export default function Hero() {
           style={{ opacity: s3Opacity, y: s3Y, scale: s3Scale }}
           className="absolute z-10 max-w-4xl w-full text-center px-6 pointer-events-none"
         >
-          <h2 className="text-4xl md:text-6xl font-serif leading-tight">
-            Where Precision <br /> Meets{" "}
-            <span className="text-red-600 italic">Emotion.</span>
-          </h2>
+          <StageCopy hidden={particleText}>
+            <h2 className="text-4xl md:text-6xl font-serif leading-tight">
+              Where Precision <br /> Meets{" "}
+              <span className="text-red-600 italic">Emotion.</span>
+            </h2>
+          </StageCopy>
         </motion.div>
 
         {/* Stage 4: CTA */}
@@ -157,9 +227,11 @@ export default function Hero() {
           style={{ opacity: ctaOpacity, y: ctaY }}
           className="absolute z-10 text-center px-6 pointer-events-none"
         >
-          <p className="text-white/40 uppercase tracking-[0.5em] text-[10px] mb-12">
-            Continue Exploring
-          </p>
+          <StageCopy hidden={particleText}>
+            <p className="text-white/40 uppercase tracking-[0.5em] text-[10px] mb-12">
+              Continue Exploring
+            </p>
+          </StageCopy>
           <div className="flex flex-col items-center">
             <motion.div
               animate={{ y: [0, 15, 0] }}
