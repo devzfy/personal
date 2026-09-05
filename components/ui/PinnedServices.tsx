@@ -3,8 +3,9 @@
 import { useRef } from "react";
 
 import { gsap, ScrollTrigger } from "@/lib/gsap";
-import { SERVICES } from "@/lib/projects";
+import { getServices } from "@/lib/projects";
 import { useIsomorphicLayoutEffect } from "@/lib/useIsomorphicLayoutEffect";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 /**
  * Pinned, scrubbed horizontal scroll-through of the services.
@@ -22,6 +23,8 @@ import { useIsomorphicLayoutEffect } from "@/lib/useIsomorphicLayoutEffect";
  * handler, so there is no forced layout per frame.
  */
 export default function PinnedServices() {
+  const { locale, dictionary } = useLanguage();
+  const services = getServices(locale);
   const rootRef = useRef<HTMLElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -135,17 +138,17 @@ export default function PinnedServices() {
         {/* Fixed Title */}
         <div className="absolute top-12 left-6 md:left-12 z-10">
           <h2 className="text-xs font-bold tracking-[0.4em] text-red-600 uppercase mb-2">
-            Capabilities
+            {dictionary.services.eyebrow}
           </h2>
-          <p className="text-2xl font-serif">Selected Services</p>
+          <p className="text-2xl font-serif">{dictionary.services.title}</p>
         </div>
 
         <div
           ref={trackRef}
           className="flex h-full w-max will-change-transform"
-          aria-label="Selected services"
+          aria-label={dictionary.services.aria}
         >
-          {SERVICES.map((service, index) => (
+          {services.map((service, index) => (
             <article
               key={service.id}
               data-panel
@@ -178,7 +181,7 @@ export default function PinnedServices() {
                   {service.description}
                 </p>
                 <div className="mt-12 text-[10px] font-bold tracking-[0.5em] uppercase text-red-600/30">
-                  0{index + 1} / 0{SERVICES.length}
+                  0{index + 1} / 0{services.length}
                 </div>
               </div>
             </article>

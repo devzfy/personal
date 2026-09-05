@@ -1,4 +1,5 @@
 import type { Project, Service } from "./types";
+import { DEFAULT_LOCALE, type Locale } from "./i18n";
 
 /*
  * ---------------------------------------------------------------------------
@@ -23,7 +24,7 @@ import type { Project, Service } from "./types";
  * ---------------------------------------------------------------------------
  */
 
-export const PROJECTS: Project[] = [
+const EN_PROJECTS: Project[] = [
   {
     id: "elearning",
     title: "Global E-learning Platform",
@@ -128,7 +129,169 @@ export const PROJECTS: Project[] = [
   },
 ];
 
-export const SERVICES: Service[] = [
+const UZ_PROJECTS: Project[] = [
+  {
+    ...EN_PROJECTS[0]!,
+    title: "2,5 mln+ foydalanuvchili ta’lim platformasi",
+    description:
+      "Millionlab o‘quvchilar foydalanadigan platforma uchun tezkor, qulay va katta yuklamaga tayyor interfeys yaratdik.",
+    longDescription:
+      "Ushbu ta’lim platformasidan 2,5 milliondan ortiq faol foydalanuvchi foydalanadi. Biz Next.js va TypeScript asosidagi interfeys arxitekturasini qayta ko‘rib chiqdik, umumiy holatni Redux orqali tartibga soldik, Framer Motion yordamida tabiiy animatsiyalar yaratdik va asosiy sahifalarni tezlashtirdik.",
+    problem:
+      "Kurs sahifalari sekin ochilar, interfeys qismlari esa yagona tartib asosida qurilmagan edi. Foydalanuvchilar soni millionlab bo‘lgan sharoitda kichik kechikishning o‘zi ham o‘qish jarayoni va faollikka sezilarli ta’sir qilardi.",
+    approach:
+      "Biz interfeysni qayta foydalaniladigan komponentlar asosida tartibga keltirdik. Kodni bo‘laklarga ajratdik, rasmlarni yuklash usulini yaxshiladik va sahifadagi keraksiz qayta chizishlarni kamaytirdik. Animatsiyalarni bezak sifatida emas, foydalanuvchiga yo‘l ko‘rsatuvchi vosita sifatida ishlatdik.",
+    result:
+      "Sahifalar 30% tezroq yuklana boshladi, foydalanish qulayligi bo‘yicha o‘zgarishlar esa faollikni 20% oshirdi. Yechim 2,5 milliondan ortiq faol foydalanuvchi uchun barqaror ishlamoqda.",
+    metrics: [
+      "2.5M+ faol foydalanuvchi",
+      "30% tezroq sahifa yuklanishi",
+      "20% yuqori foydalanuvchi faolligi",
+    ],
+  },
+  {
+    ...EN_PROJECTS[1]!,
+    title: "Internet-do‘konni to‘liq yangilash",
+    description:
+      "Eskirgan internet-do‘konni zamonaviy ko‘rinish, qulay xarid jarayoni va bir nechta to‘lov usuli bilan qayta yaratdik.",
+    longDescription:
+      "Biz internet-do‘konning eski interfeysini Next.js va shadcn/ui asosida boshidan qayta qurdik. Mahsulot tanlashdan to‘lovgacha bo‘lgan yo‘lni soddalashtirdik, Stripe orqali bir nechta to‘lov turini yagona tizimga birlashtirdik va buyurtma berish jarayonini sezilarli tezlashtirdik.",
+    problem:
+      "Xaridorlar buyurtmani rasmiylashtirishda ortiqcha bosqichlardan o‘tardi. Eski kodga yangi to‘lov usulini qo‘shish qiyin va xatarga boy bo‘lib, do‘konni rivojlantirishni sekinlashtirardi.",
+    approach:
+      "Biz xarid jarayonini foydalanuvchi nuqtayi nazaridan qayta loyihaladik. Interfeysni yagona komponentlar tizimiga o‘tkazdik, to‘lovlarni Stripe orqali boshqardik, mahsulot va buyurtma ma’lumotlarini esa PostgreSQL bazasida tartibli saqladik.",
+    result:
+      "Buyurtma berish 50% tezlashdi. Xaridorlar o‘ziga qulay to‘lov usulini tanlay oladi, biznes esa yangi imkoniyatlarni tizimga ancha tez va xavfsiz qo‘sha oladi.",
+    metrics: [
+      "Yagona va kengayuvchan interfeys tizimi",
+      "Bir nechta to‘lov usuli",
+      "50% tezroq buyurtma berish jarayoni",
+    ],
+  },
+  {
+    ...EN_PROJECTS[2]!,
+    title: "Jonli logistika boshqaruv tizimi",
+    description:
+      "Kuniga 5 000 dan ortiq operatsiyani boshqarish va obyektlarni xaritada jonli kuzatish uchun yagona tizim yaratdik.",
+    longDescription:
+      "Biz logistika jamoasi uchun transport va boshqa obyektlar holatini bir oynada kuzatish imkonini beradigan boshqaruv tizimini yaratdik. Ma’lumotlar Socket.io orqali uzluksiz yangilanadi va D3.js yordamida tushunarli ko‘rinishda aks etadi. Tizimga tahliliy ko‘rsatkichlar hamda mijoz bilan kompaniya o‘rtasidagi jonli muloqotni ham qo‘shdik.",
+    problem:
+      "Jamoa tez eskirib qoladigan ma’lumotlar bilan ishlardi. Kuniga minglab operatsiya bajarilganda oddiy davriy so‘rovlar vaziyatni o‘z vaqtida ko‘rsata olmas, mijoz bilan aloqa esa alohida kanallarda olib borilardi.",
+    approach:
+      "Biz jonli ma’lumotlarni Socket.io oqimiga o‘tkazdik, xarita va ko‘rsatkichlarni D3.js bilan vizuallashtirdik. TanStack Query yordamida ortiqcha so‘rovlarni kamaytirdik. Tahlil va chatni ham shu yagona tizim ichiga joylashtirdik.",
+    result:
+      "Ma’lumotlarning kechikishi 60% kamaydi. Endi 5 000 dan ortiq obyekt jonli kuzatiladi, qariyb 1 000 foydalanuvchi esa bir vaqtning o‘zida yagona va dolzarb ma’lumot bilan ishlaydi.",
+    metrics: [
+      "60% kamroq ma’lumot kechikishi",
+      "5k+ obyektni jonli kuzatish",
+      "Qaror qabul qilish uchun tahliliy ko‘rsatkichlar",
+      "Mijoz va kompaniya o‘rtasida jonli chat",
+    ],
+  },
+  {
+    ...EN_PROJECTS[3]!,
+    title: "Biznes jarayonlarini boshqarish paneli",
+    description:
+      "10 000 dan ortiq mijoz yozuvi va kundalik ish jarayonlarini yagona joyda boshqaradigan ichki tizim yaratdik.",
+    longDescription:
+      "Biz kompaniyaning mijozlar bazasi, ko‘rsatkichlari va takrorlanuvchi vazifalarini yagona boshqaruv paneliga birlashtirdik. O‘n ikkita asosiy jarayonni avtomatlashtirdik, ma’lumotlarni Chart.js grafiklarida aniq ko‘rsatdik, lidlar va administratorlar uchun esa Socket.io asosida jonli chat yaratdik.",
+    problem:
+      "Jamoa 10 000 dan ortiq mijoz yozuvini ko‘p jihatdan qo‘lda boshqarardi. Takroriy vazifalar vaqtni olar, turli jadvallarda saqlangan ma’lumotlar esa xatolar va nazoratning yo‘qolishiga sabab bo‘lardi.",
+    approach:
+      "Biz asosiy ish jarayonlarini tahlil qilib, o‘n ikkita takroriy vazifani avtomatlashtirdik. TanStack Query yordamida ma’lumotlarni doim dolzarb saqladik, Chart.js orqali rahbarlar uchun muhim ko‘rsatkichlarni ko‘rsatdik va ichki chat bilan muloqotni bir joyga jamladik.",
+    result:
+      "Qo‘lda ma’lumot kiritish 50% kamaydi, 12 ta jarayon avtomatik ishlay boshladi va 10 000 dan ortiq yozuv o‘zgarishlar tarixi bilan yagona tizimda boshqarilmoqda.",
+    metrics: [
+      "50% kamroq qo‘lda ma’lumot kiritish",
+      "10,000+ mijoz yozuvi yagona tizimda",
+      "12 ta asosiy biznes jarayoni avtomatlashtirildi",
+      "Lidlar va administratorlar uchun jonli chat",
+    ],
+  },
+];
+
+const RU_PROJECTS: Project[] = [
+  {
+    ...EN_PROJECTS[0]!,
+    title: "Образовательная платформа для 2,5 млн+ пользователей",
+    description:
+      "Быстрый, удобный и готовый к высоким нагрузкам интерфейс для платформы, которой пользуются миллионы учащихся.",
+    longDescription:
+      "Образовательной платформой пользуются более 2,5 млн активных учащихся. В рамках проекта была переработана архитектура интерфейса на Next.js и TypeScript, упорядочено управление состоянием через Redux, добавлены естественные анимации на Framer Motion и ускорена загрузка ключевых страниц.",
+    problem:
+      "Страницы курсов загружались медленно, а элементы интерфейса не были объединены в единую систему. При миллионной аудитории даже небольшая задержка заметно влияла на учебный процесс и вовлечённость.",
+    approach:
+      "Интерфейс был собран из переиспользуемых компонентов. Разделение кода, оптимизация изображений и устранение лишних перерисовок ускорили основные разделы. Анимации стали частью пользовательского сценария, а не просто украшением.",
+    result:
+      "Страницы стали загружаться на 30% быстрее, а улучшения пользовательского опыта повысили вовлечённость на 20%. Решение стабильно работает для аудитории более 2,5 млн человек.",
+    metrics: [
+      "2.5M+ активных пользователей",
+      "30% быстрее загружаются страницы",
+      "20% рост вовлечённости пользователей",
+    ],
+  },
+  {
+    ...EN_PROJECTS[1]!,
+    title: "Полное обновление интернет-магазина",
+    description:
+      "Устаревший интернет-магазин получил современный интерфейс, простой путь к покупке и несколько способов оплаты.",
+    longDescription:
+      "Интерфейс интернет-магазина был заново собран на Next.js и shadcn/ui. Путь от выбора товара до оплаты стал короче и понятнее, несколько способов оплаты объединились через Stripe, а оформление заказа заметно ускорилось.",
+    problem:
+      "Покупателям приходилось проходить лишние шаги при оформлении заказа. Добавление новых способов оплаты в устаревший код занимало много времени и повышало риск ошибок.",
+    approach:
+      "Процесс покупки был перепроектирован с точки зрения клиента. Интерфейс переведён на единую систему компонентов, платежи подключены через Stripe, а данные товаров и заказов организованы в PostgreSQL.",
+    result:
+      "Оформление заказа стало на 50% быстрее. Покупатели могут выбрать удобный способ оплаты, а бизнес — безопасно и быстро развивать магазин.",
+    metrics: [
+      "Единая и расширяемая система интерфейса",
+      "Несколько способов оплаты",
+      "На 50% быстрее оформление заказа",
+    ],
+  },
+  {
+    ...EN_PROJECTS[2]!,
+    title: "Система управления логистикой в реальном времени",
+    description:
+      "Единая система для 5 000+ операций в день и отслеживания объектов на карте в реальном времени.",
+    longDescription:
+      "Для команды логистики создана панель, в которой видно текущее состояние транспорта и других объектов. Данные обновляются через Socket.io и наглядно отображаются с помощью D3.js. В систему также встроены аналитика и чат между клиентом и компанией.",
+    problem:
+      "Команда принимала решения на основе данных, которые быстро устаревали. При тысячах ежедневных операций периодические запросы не успевали показывать актуальную ситуацию, а общение с клиентами происходило в отдельных каналах.",
+    approach:
+      "Потоковые обновления были реализованы через Socket.io, карта и показатели — через D3.js. TanStack Query сократил лишние запросы, а аналитика и чат стали частью одной рабочей среды.",
+    result:
+      "Задержка данных снизилась на 60%. Более 5 000 объектов отслеживаются онлайн, а около 1 000 пользователей одновременно работают с единой актуальной информацией.",
+    metrics: [
+      "60% снижение задержки данных",
+      "5k+ объектов отслеживаются онлайн",
+      "Аналитика для принятия решений",
+      "Чат между клиентами и компанией",
+    ],
+  },
+  {
+    ...EN_PROJECTS[3]!,
+    title: "Панель управления бизнес-процессами",
+    description:
+      "Внутренняя система для управления 10 000+ клиентских записей и автоматизации ежедневных операций.",
+    longDescription:
+      "Клиентская база, показатели и повторяющиеся задачи компании были объединены в одной панели. Двенадцать ключевых процессов автоматизированы, данные представлены в понятных графиках Chart.js, а для лидов и администраторов создан чат на Socket.io.",
+    problem:
+      "Команда вручную обрабатывала более 10 000 клиентских записей. Повторяющиеся операции отнимали время, а данные в разных таблицах приводили к ошибкам и усложняли контроль.",
+    approach:
+      "После анализа рабочих процессов двенадцать повторяющихся операций были автоматизированы. TanStack Query поддерживает данные в актуальном состоянии, Chart.js показывает важные руководителю показатели, а встроенный чат объединяет коммуникацию.",
+    result:
+      "Объём ручного ввода сократился на 50%, двенадцать процессов работают автоматически, а более 10 000 записей управляются в единой системе с историей изменений.",
+    metrics: [
+      "50% меньше ручного ввода данных",
+      "10,000+ клиентских записей в одной системе",
+      "Автоматизировано 12 ключевых процессов",
+      "Встроенный чат для лидов и администраторов",
+    ],
+  },
+];
+
+const EN_SERVICES: Service[] = [
   {
     id: "ui-dev",
     title: "Interactive UI Development",
@@ -180,13 +343,125 @@ export const SERVICES: Service[] = [
   },
 ];
 
+const SERVICE_COPY: Record<Exclude<Locale, "en">, Array<Pick<Service, "title" | "description">>> = {
+  uz: [
+    {
+      title: "Veb-sayt va veb-ilovalar",
+      description:
+        "Biznes maqsadingizga mos, telefon va kompyuterda birdek qulay ishlaydigan zamonaviy sayt hamda veb-ilovalar yaratamiz.",
+    },
+    {
+      title: "Mobil ilovalar",
+      description:
+        "React Native yordamida iOS va Android uchun tezkor, qulay va yagona kod bazasida boshqariladigan mobil ilovalar ishlab chiqamiz.",
+    },
+    {
+      title: "Telegram botlar",
+      description:
+        "Buyurtma qabul qilish, mijozlarga xizmat ko‘rsatish va kundalik vazifalarni avtomatlashtirish uchun ishonchli Telegram botlar yaratamiz.",
+    },
+    {
+      title: "Sun’iy intellekt yechimlari",
+      description:
+        "Aqlli yordamchi, avtomatik tahlil yoki takroriy ishlarni bajaruvchi vositalar orqali sun’iy intellektni mahsulotingizga amaliy foyda bilan qo‘shamiz.",
+    },
+    {
+      title: "Kompyuter uchun ilovalar",
+      description:
+        "Electron.js asosida Windows va macOS tizimlarida ishlaydigan, qulay va boshqarish oson dasturlar yaratamiz.",
+    },
+    {
+      title: "Sayt tezligini oshirish",
+      description:
+        "Sekin ishlayotgan sahifalarni tahlil qilib, yuklanish vaqtini qisqartiramiz va foydalanuvchi tajribasini yaxshilaymiz. Amaliy loyihalarda 20–40% gacha tezlashishga erishilgan.",
+    },
+    {
+      title: "Animatsiya va WebGL",
+      description:
+        "Framer Motion, GSAP va Three.js yordamida brendingizni ajratib turadigan, esda qoladigan interaktiv tajribalar yaratamiz.",
+    },
+  ],
+  ru: [
+    {
+      title: "Сайты и веб-приложения",
+      description:
+        "Создаём современные сайты и веб-приложения под задачи бизнеса — быстрые, понятные и удобные на телефоне и компьютере.",
+    },
+    {
+      title: "Мобильные приложения",
+      description:
+        "Разрабатываем быстрые и удобные приложения для iOS и Android на React Native с единой кодовой базой.",
+    },
+    {
+      title: "Telegram-боты",
+      description:
+        "Создаём надёжных ботов для приёма заказов, поддержки клиентов и автоматизации повседневных задач.",
+    },
+    {
+      title: "Решения на базе ИИ",
+      description:
+        "Добавляем в продукты умных помощников, автоматический анализ и инструменты, которые снимают с команды повторяющуюся работу.",
+    },
+    {
+      title: "Приложения для компьютера",
+      description:
+        "Разрабатываем на Electron.js удобные приложения, которые работают на Windows и macOS.",
+    },
+    {
+      title: "Ускорение сайтов",
+      description:
+        "Находим причины медленной загрузки и улучшаем пользовательский опыт. В реальных проектах страницы становились быстрее на 20–40%.",
+    },
+    {
+      title: "Анимация и WebGL",
+      description:
+        "Создаём на Framer Motion, GSAP и Three.js интерактивные визуальные решения, которые выделяют бренд и запоминаются.",
+    },
+  ],
+};
+
+function localizeServices(locale: Locale): Service[] {
+  if (locale === "en") return EN_SERVICES;
+  return EN_SERVICES.map((service, index) => ({
+    ...service,
+    ...SERVICE_COPY[locale][index],
+  }));
+}
+
+export const PROJECTS_BY_LOCALE: Record<Locale, Project[]> = {
+  uz: UZ_PROJECTS,
+  ru: RU_PROJECTS,
+  en: EN_PROJECTS,
+};
+
+export const SERVICES_BY_LOCALE: Record<Locale, Service[]> = {
+  uz: localizeServices("uz"),
+  ru: localizeServices("ru"),
+  en: EN_SERVICES,
+};
+
+/** Default-language exports kept for static assets and compatibility. */
+export const PROJECTS = PROJECTS_BY_LOCALE[DEFAULT_LOCALE];
+export const SERVICES = SERVICES_BY_LOCALE[DEFAULT_LOCALE];
+
+export function getProjects(locale: Locale = DEFAULT_LOCALE): Project[] {
+  return PROJECTS_BY_LOCALE[locale];
+}
+
+export function getServices(locale: Locale = DEFAULT_LOCALE): Service[] {
+  return SERVICES_BY_LOCALE[locale];
+}
+
 /** Slugs for /projects/[slug] — driven by Project.id. */
 export function getProjectSlugs(): string[] {
   return PROJECTS.map((project) => project.id);
 }
 
-export function getProjectBySlug(slug: string): Project | undefined {
-  return PROJECTS.find((project) => project.id === slug);
+export function getProjectBySlug(
+  slug: string,
+  locale: Locale = DEFAULT_LOCALE,
+): Project | undefined {
+  return getProjects(locale).find((project) => project.id === slug);
 }
 
 /** 0-based position, used for the "Case Study 0N" label. */
@@ -198,10 +473,14 @@ export function getProjectIndex(slug: string): number {
  * The next project in the array, wrapping around at the end so the case study
  * pages form a loop. Returns undefined only if the slug is unknown.
  */
-export function getNextProject(slug: string): Project | undefined {
+export function getNextProject(
+  slug: string,
+  locale: Locale = DEFAULT_LOCALE,
+): Project | undefined {
   const index = getProjectIndex(slug);
   if (index === -1) return undefined;
-  return PROJECTS[(index + 1) % PROJECTS.length];
+  const projects = getProjects(locale);
+  return projects[(index + 1) % projects.length];
 }
 
 export interface ParsedMetric {

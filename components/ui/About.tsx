@@ -4,8 +4,10 @@ import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
 import SplitTextReveal from "@/components/ui/SplitTextReveal";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function About() {
+  const { dictionary } = useLanguage();
   const targetRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: targetRef,
@@ -38,14 +40,14 @@ export default function About() {
           <motion.img
             style={{ y: imgY, scale: 1.2 }}
             src="https://picsum.photos/seed/engineer/800/1000"
-            alt="Javokhir Shokirov Portrait"
+            alt={dictionary.about.portraitAlt}
             className="w-full h-full object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700"
           />
           <div className="absolute inset-0 border border-white/10 m-6 pointer-events-none" />
           <div className="absolute bottom-12 right-0 bg-red-600 p-8 transform translate-x-1/2 hidden md:block">
-            <p className="text-4xl font-serif italic leading-none">4+</p>
+            <p className="text-4xl font-serif italic leading-none">5+</p>
             <p className="text-xs uppercase tracking-widest mt-2">
-              Years of Exp
+              {dictionary.about.years}
             </p>
           </div>
         </motion.div>
@@ -57,39 +59,31 @@ export default function About() {
           viewport={{ once: true }}
         >
           <h2 className="text-sm font-medium tracking-[0.4em] text-red-600 uppercase mb-6">
-            Expertise &amp; Story
+            {dictionary.about.eyebrow}
           </h2>
           <h3 className="text-4xl md:text-5xl font-serif mb-8 leading-tight">
             <SplitTextReveal
-              text={"Based in Uzbekistan,\nWorking Globally."}
+              text={dictionary.about.title}
               stagger={0.055}
             />
           </h3>
           <div className="space-y-6 text-white/60 text-lg leading-relaxed">
-            <p>
-              Software Engineer with 4+ years of experience building
-              high-quality web applications with modern JavaScript/TypeScript
-              (React, Next.js, Astro), emphasizing robust, scalable,
-              high-performance solutions.
-            </p>
-            <p>
-              Expert in React, TypeScript, Next.js and animation libraries, with
-              a strong eye for UI/UX and detail. My work focuses on bridging the
-              gap between functional code and aesthetic brilliance.
-            </p>
+            {dictionary.about.paragraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
           </div>
 
           <div className="mt-12 grid grid-cols-2 gap-8">
             <div>
               <p className="text-3xl font-serif italic mb-1">2.5M+</p>
               <p className="text-xs uppercase tracking-widest opacity-40">
-                Learners Served
+                {dictionary.about.learners}
               </p>
             </div>
             <div>
               <p className="text-3xl font-serif italic mb-1">50%</p>
               <p className="text-xs uppercase tracking-widest opacity-40">
-                Efficiency Gained
+                {dictionary.about.efficiency}
               </p>
             </div>
           </div>
@@ -121,6 +115,31 @@ export default function About() {
           </div>
         </motion.div>
       </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+        viewport={{ once: true }}
+        className="max-w-7xl mx-auto mt-24 border-t border-white/10 pt-16"
+      >
+        <h3 className="max-w-2xl text-3xl md:text-4xl font-serif leading-tight mb-10">
+          {dictionary.about.principlesTitle}
+        </h3>
+        <div className="grid md:grid-cols-3 gap-px bg-white/10 border border-white/10">
+          {dictionary.about.principles.map((principle, index) => (
+            <article key={principle.title} className="bg-black p-8 md:p-10">
+              <span className="block text-[10px] tracking-[0.4em] text-red-600 mb-6">
+                0{index + 1}
+              </span>
+              <h4 className="text-xl font-serif mb-4">{principle.title}</h4>
+              <p className="text-sm leading-relaxed text-white/50">
+                {principle.description}
+              </p>
+            </article>
+          ))}
+        </div>
+      </motion.div>
     </section>
   );
 }

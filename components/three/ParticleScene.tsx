@@ -202,20 +202,6 @@ function ParticleField({ progress, quality, textStages }: ParticleFieldProps) {
     const formation = readFormation();
     const textMorph = text ? formation.morph * intro : 0;
 
-    // TEMP-PROBE-START (verification instrumentation, remove)
-    {
-      const w = window as unknown as { __heroProbe?: number[][] };
-      if (w.__heroProbe) {
-        w.__heroProbe.push([
-          performance.now(),
-          textMorph,
-          formation.stage,
-          progress,
-        ]);
-      }
-    }
-    // TEMP-PROBE-END
-
     // Rotation and scale are eased to rest as text assembles. A shader cannot
     // undo an accumulating object rotation, and a spinning, growing letterform
     // is not readable.

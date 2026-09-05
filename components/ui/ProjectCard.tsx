@@ -2,6 +2,7 @@
 
 import { motion, type Variants } from "framer-motion";
 import type { Project } from "@/lib/types";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 /**
  * The badges reveal after the card itself has settled. Own whileInView rather
@@ -30,6 +31,8 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({ project, index }: ProjectCardProps) {
+  const { dictionary } = useLanguage();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -41,7 +44,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
     >
       <div className="p-8 grow">
         <span className="text-[10px] uppercase tracking-[0.4em] text-red-600 mb-4 block opacity-0 group-hover:opacity-100 transition-opacity">
-          Case Study 0{index + 1}
+          {dictionary.project.caseStudy} 0{index + 1}
         </span>
         <h3 className="text-3xl font-serif mb-4 group-hover:italic transition-all">
           {project.title}

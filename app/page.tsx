@@ -9,42 +9,42 @@ import Contact from "@/components/ui/Contact";
 import Signature from "@/components/ui/Signature";
 import SplitTextReveal from "@/components/ui/SplitTextReveal";
 import JsonLd from "@/components/JsonLd";
-import { PROJECTS } from "@/lib/projects";
+import { getProjects } from "@/lib/projects";
 import { homeGraph } from "@/lib/schema";
-import { SITE, absoluteUrl } from "@/lib/site";
+import { absoluteUrl, getSite } from "@/lib/site";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/locale";
 
-export const metadata: Metadata = {
-  title: `${SITE.name} — ${SITE.jobTitle}`,
-  description: SITE.description,
-  alternates: { canonical: "/" },
-  openGraph: {
-    // Matches the old index.html; `profile` would change how some scrapers
-    // render the card, and this is a structural port.
-    type: "website",
-    url: absoluteUrl("/"),
-    title: `${SITE.name} — ${SITE.jobTitle}`,
-    description: SITE.description,
-    images: [
-      {
-        url: SITE.ogImage.url,
-        width: SITE.ogImage.width,
-        height: SITE.ogImage.height,
-        alt: SITE.ogImage.alt,
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `${SITE.name} — ${SITE.jobTitle}`,
-    description: SITE.description,
-    images: [SITE.ogImage.url],
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = getSite(await getLocale());
+  return {
+    title: `${site.name} — ${site.jobTitle}`,
+    description: site.description,
+    alternates: { canonical: "/" },
+    openGraph: {
+      type: "website",
+      url: absoluteUrl("/"),
+      title: `${site.name} — ${site.jobTitle}`,
+      description: site.description,
+      images: [site.ogImage],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${site.name} — ${site.jobTitle}`,
+      description: site.description,
+      images: [site.ogImage.url],
+    },
+  };
+}
 
-export default function HomePage() {
+export default async function HomePage() {
+  const locale = await getLocale();
+  const dictionary = getDictionary(locale);
+  const projects = getProjects(locale);
+
   return (
     <>
-      <JsonLd data={homeGraph()} />
+      <JsonLd data={homeGraph(locale)} />
 
       <div className="flex flex-col">
         <Hero />
@@ -56,26 +56,29 @@ export default function HomePage() {
             <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
               <div>
                 <h2 className="text-sm font-medium tracking-[0.4em] text-red-600 uppercase mb-6">
-                  Selected Work
+                  {dictionary.home.selectedWork}
                 </h2>
                 <h3 className="text-4xl md:text-5xl font-serif leading-tight">
-                  <SplitTextReveal text="Notable Successes." />
+                  <SplitTextReveal text={dictionary.home.notableSuccesses} />
                 </h3>
+                <p className="mt-6 max-w-xl text-white/45 leading-relaxed">
+                  {dictionary.home.featuredDescription}
+                </p>
               </div>
               <TransitionLink
                 href="/projects"
                 className="text-xs uppercase tracking-widest font-bold border-b border-red-600 pb-2 hover:text-red-600 transition-colors"
               >
-                View Full Archive
+                {dictionary.home.viewArchive}
               </TransitionLink>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
-              {PROJECTS.slice(0, 4).map((project, index) => (
+              {projects.slice(0, 4).map((project, index) => (
                 <TransitionLink
                   key={project.id}
                   href={`/projects/${project.id}`}
-                  aria-label={`Read the ${project.title} case study`}
+                  aria-label={dictionary.home.caseStudyAria(project.title)}
                 >
                   <ProjectCard project={project} index={index} />
                 </TransitionLink>

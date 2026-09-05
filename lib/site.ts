@@ -1,3 +1,5 @@
+import { DEFAULT_LOCALE, getDictionary, type Locale } from "./i18n";
+
 /**
  * Single source of truth for identity + SEO.
  * Used by metadata, JSON-LD, sitemap and robots.
@@ -6,10 +8,9 @@ export const SITE = {
   url: "https://devzfy.uz",
   name: "Javokhir Shokirov",
   shortName: "JS.",
-  jobTitle: "Software Engineer",
-  locale: "en_US",
-  description:
-    "Crafting high-end, interactive, and animated digital experiences — from web apps to mobile apps, Telegram bots, and AI integrations — all engineered with precision to impress.",
+  jobTitle: getDictionary(DEFAULT_LOCALE).site.jobTitle,
+  locale: "uz_UZ",
+  description: getDictionary(DEFAULT_LOCALE).site.description,
   email: "devzfy@gmail.com",
   location: {
     city: "Tashkent",
@@ -20,9 +21,26 @@ export const SITE = {
     url: "/og-preview.png",
     width: 1536,
     height: 1024,
-    alt: "Javokhir Shokirov — Software Engineer",
+    alt: getDictionary(DEFAULT_LOCALE).site.ogAlt,
   },
 } as const;
+
+const OPEN_GRAPH_LOCALES: Record<Locale, string> = {
+  uz: "uz_UZ",
+  ru: "ru_RU",
+  en: "en_US",
+};
+
+export function getSite(locale: Locale = DEFAULT_LOCALE) {
+  const dictionary = getDictionary(locale);
+  return {
+    ...SITE,
+    jobTitle: dictionary.site.jobTitle,
+    description: dictionary.site.description,
+    locale: OPEN_GRAPH_LOCALES[locale],
+    ogImage: { ...SITE.ogImage, alt: dictionary.site.ogAlt },
+  };
+}
 
 export const SOCIALS = {
   github: "https://github.com/devzfy",

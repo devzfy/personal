@@ -4,6 +4,7 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { SOCIALS } from "@/lib/site";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 const ParticleScene = dynamic(
   () => import("@/components/three/ParticleScene"),
@@ -42,6 +43,7 @@ const socialLinks = [
 ];
 
 export default function ContactContent() {
+  const { dictionary } = useLanguage();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -53,7 +55,7 @@ export default function ContactContent() {
     e.preventDefault();
     // In a real app, you would handle the form submission here
     console.log("Form Submitted:", formData);
-    alert("Thank you for your message! This is a demo submission.");
+    alert(dictionary.contact.sent);
   };
 
   const handleChange = (
@@ -74,13 +76,16 @@ export default function ContactContent() {
           className="text-center mb-16"
         >
           <span className="text-sm font-medium tracking-[0.4em] text-red-600 uppercase mb-4 block">
-            Get In Touch
+            {dictionary.contact.eyebrow}
           </span>
           <h1 className="text-5xl md:text-8xl font-serif mb-6 leading-tight">
-            Work <span className="italic text-red-600">With Me.</span>
+            {dictionary.contact.titleBefore}{" "}
+            <span className="italic text-red-600">
+              {dictionary.contact.titleAccent}
+            </span>
           </h1>
           <p className="text-white/40 text-lg max-w-xl mx-auto uppercase tracking-widest text-sm">
-            Have a vision? Let&apos;s bring it to life through code.
+            {dictionary.contact.intro}
           </p>
         </motion.div>
 
@@ -97,7 +102,7 @@ export default function ContactContent() {
               htmlFor="fullName"
               className="text-[10px] uppercase tracking-widest text-white/40 mb-2 ml-1"
             >
-              Full Name *
+              {dictionary.contact.fullName}
             </label>
             <input
               required
@@ -116,7 +121,7 @@ export default function ContactContent() {
               htmlFor="email"
               className="text-[10px] uppercase tracking-widest text-white/40 mb-2 ml-1"
             >
-              Email Address *
+              {dictionary.contact.email}
             </label>
             <input
               required
@@ -135,7 +140,7 @@ export default function ContactContent() {
               htmlFor="phone"
               className="text-[10px] uppercase tracking-widest text-white/40 mb-2 ml-1"
             >
-              Phone Number (Optional)
+              {dictionary.contact.phone}
             </label>
             <input
               id="phone"
@@ -153,14 +158,14 @@ export default function ContactContent() {
               htmlFor="message"
               className="text-[10px] uppercase tracking-widest text-white/40 mb-2 ml-1"
             >
-              Message *
+              {dictionary.contact.message}
             </label>
             <textarea
               required
               id="message"
               name="message"
               rows={5}
-              placeholder="Tell me about your project..."
+              placeholder={dictionary.contact.messagePlaceholder}
               value={formData.message}
               onChange={handleChange}
               className="bg-white/5 border border-white/10 px-4 py-4 focus:outline-none focus:border-red-600 transition-colors text-white placeholder:text-white/10 resize-none"
@@ -173,7 +178,7 @@ export default function ContactContent() {
               type="submit"
               className="w-full py-5 bg-red-600 text-white font-bold uppercase tracking-[0.3em] text-sm hover:bg-white hover:text-black transition-all duration-300"
             >
-              Send Message
+              {dictionary.contact.send}
             </motion.button>
           </div>
         </motion.form>
@@ -186,7 +191,7 @@ export default function ContactContent() {
           className="text-center"
         >
           <p className="text-white/40 text-xs uppercase tracking-[0.5em] mb-10">
-            Or reach out via:
+            {dictionary.contact.socials}
           </p>
           <div className="flex flex-wrap justify-center gap-6">
             {socialLinks.map((social) => (
@@ -219,19 +224,27 @@ export default function ContactContent() {
         {/* Location / Status Info */}
         <div className="mt-24 grid grid-cols-1 md:grid-cols-2 gap-12 text-white/40 text-[10px] tracking-[0.3em] uppercase border-t border-white/5 pt-12">
           <div className="flex flex-col items-center md:items-start">
-            <span className="text-white/20 mb-2 tracking-normal">Location</span>
-            <span className="text-white/60">Tashkent, Uzbekistan (UTC+5)</span>
+            <span className="text-white/20 mb-2 tracking-normal">
+              {dictionary.contact.location}
+            </span>
+            <span className="text-white/60">
+              {dictionary.contact.locationValue}
+            </span>
           </div>
           <div className="flex flex-col items-center md:items-end">
-            <span className="text-white/20 mb-2 tracking-normal">Status</span>
-            <span className="text-green-500">Currently Open for Freelance</span>
+            <span className="text-white/20 mb-2 tracking-normal">
+              {dictionary.contact.status}
+            </span>
+            <span className="text-green-500">
+              {dictionary.contact.statusValue}
+            </span>
           </div>
         </div>
       </div>
 
       {/* Background Decor */}
       <div className="fixed bottom-12 left-1/2 -translate-x-1/2 opacity-10 text-[10px] tracking-[2em] whitespace-nowrap pointer-events-none select-none">
-        JAVOKHIR SHOKIROV • PREMIUM ENGINEERING
+        {dictionary.contact.background}
       </div>
     </div>
   );

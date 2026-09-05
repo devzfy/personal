@@ -17,6 +17,7 @@ import {
   heroStageKeyframes,
 } from "@/lib/heroStages";
 import { detectSceneQuality } from "@/lib/sceneQuality";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 // WebGL cannot be server-rendered, so the canvas is client-only.
 const ParticleScene = dynamic(
@@ -32,22 +33,6 @@ const ParticleScene = dynamic(
  * bigger glyphs and more points each. Content matches the DOM exactly, so the
  * visible text and the text a crawler reads never diverge.
  */
-const PARTICLE_STAGES = [
-  "Crafting\nProducts That\nResonate",
-  "Whatever it is —\nwe make it real.",
-  "Where Precision\nMeets Emotion.",
-  "Continue\nExploring",
-] as const;
-
-// A stage the particles can spell has to be a stage the copy describes, so the
-// two counts are the same thing. Kept as an assertion rather than a comment
-// because the letterform attributes are packed to exactly four targets.
-if (PARTICLE_STAGES.length !== HERO_STAGE_COUNT) {
-  throw new Error(
-    `Hero copy has ${PARTICLE_STAGES.length} stages but HERO_STAGE_COUNT is ${HERO_STAGE_COUNT}`,
-  );
-}
-
 /**
  * Visually hidden, still announced. Applied inline rather than via Tailwind's
  * `sr-only` because these blocks already carry w-full / absolute utilities that
@@ -107,13 +92,20 @@ function StageLayer({
   const y = useTransform(progress, keyframes.times, keyframes.y);
 
   return (
-    <motion.div style={{ opacity, scale, y }} className={className}>
+    <motion.div
+      // Mirrors the data-panel convention used by PinnedServices; makes the
+      // correspondence between a copy block and a particle stage inspectable.
+      data-hero-stage={stage}
+      style={{ opacity, scale, y }}
+      className={className}
+    >
       {children}
     </motion.div>
   );
 }
 
 export default function Hero() {
+  const { dictionary } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollValue, setScrollValue] = useState(0);
 
@@ -170,7 +162,14 @@ export default function Hero() {
     },
   };
 
-  const headlineText = "Crafting Products That Resonate";
+  const headlineWords = dictionary.hero.headline.split(" ");
+  const particleStages = dictionary.hero.particleStages;
+
+  if (particleStages.length !== HERO_STAGE_COUNT) {
+    throw new Error(
+      `Hero copy has ${particleStages.length} stages but HERO_STAGE_COUNT is ${HERO_STAGE_COUNT}`,
+    );
+  }
 
   return (
     <section
@@ -184,7 +183,7 @@ export default function Hero() {
       <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
         <ParticleScene
           progress={scrollValue}
-          textStages={particleText ? PARTICLE_STAGES : undefined}
+          textStages={particleText ? particleStages : undefined}
         />
 
         {/* Stage 1: Initial Hero Texts */}
@@ -209,10 +208,10 @@ export default function Hero() {
             animate="visible"
             className="text-5xl md:text-8xl font-serif mb-8 leading-[1.1] tracking-tight flex flex-wrap justify-center gap-x-[0.3em]"
           >
-            {headlineText.split(" ").map((word, i) => (
+            {headlineWords.map((word, i) => (
               <span key={i} className="inline-block overflow-hidden pb-2">
                 <motion.span variants={wordVariants} className="inline-block">
-                  {word === "Resonate" ? (
+                  {i === headlineWords.length - 1 ? (
                     <span className="italic">{word}</span>
                   ) : (
                     word
@@ -232,8 +231,10 @@ export default function Hero() {
         >
           <StageCopy hidden={particleText}>
             <h2 className="text-4xl md:text-6xl font-serif leading-tight">
-              Whatever it is — <br /> we make it{" "}
-              <span className="text-red-600 italic">real.</span>
+              {dictionary.hero.visionBefore} <br />{" "}
+              <span className="text-red-600 italic">
+                {dictionary.hero.visionAfter}
+              </span>
             </h2>
           </StageCopy>
         </StageLayer>
@@ -246,8 +247,10 @@ export default function Hero() {
         >
           <StageCopy hidden={particleText}>
             <h2 className="text-4xl md:text-6xl font-serif leading-tight">
-              Where Precision <br /> Meets{" "}
-              <span className="text-red-600 italic">Emotion.</span>
+              {dictionary.hero.missionBefore} <br />{" "}
+              <span className="text-red-600 italic">
+                {dictionary.hero.missionAfter}
+              </span>
             </h2>
           </StageCopy>
         </StageLayer>
@@ -260,7 +263,7 @@ export default function Hero() {
         >
           <StageCopy hidden={particleText}>
             <p className="text-white/40 uppercase tracking-[0.5em] text-[10px] mb-12">
-              Continue Exploring
+              {dictionary.hero.continue}
             </p>
           </StageCopy>
           <div className="flex flex-col items-center">

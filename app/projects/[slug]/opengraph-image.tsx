@@ -2,10 +2,11 @@ import { ImageResponse } from "next/og";
 
 import { getProjectBySlug, getProjectSlugs, parseMetric } from "@/lib/projects";
 import { SITE } from "@/lib/site";
+import { DEFAULT_LOCALE, getDictionary } from "@/lib/i18n";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Case study preview";
+export const alt = "Loyiha tahlili uchun prevyu";
 
 export function generateStaticParams() {
   return getProjectSlugs().map((slug) => ({ slug }));
@@ -27,6 +28,7 @@ export default async function OpengraphImage({
 }) {
   const { slug } = await params;
   const project = getProjectBySlug(slug);
+  const dictionary = getDictionary(DEFAULT_LOCALE);
 
   const title = project?.title ?? SITE.name;
   // Prefer metrics whose figure was cleanly lifted out of the caption, so the
@@ -60,7 +62,7 @@ export default async function OpengraphImage({
               textTransform: "uppercase",
             }}
           >
-            Case Study
+            {dictionary.project.caseStudy}
           </div>
           <div
             style={{

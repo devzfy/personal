@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 /**
  * The 2s intro screen from App.tsx.
@@ -14,6 +15,7 @@ import { motion } from "framer-motion";
  * Body scroll is locked while it is up, matching the original's unmounted page.
  */
 export default function LoadingOverlay() {
+  const { dictionary } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -53,7 +55,7 @@ export default function LoadingOverlay() {
           />
         </div>
         <p className="mt-4 text-xs tracking-widest uppercase opacity-40">
-          Loading Excellence
+          {dictionary.loading}
         </p>
       </motion.div>
     </div>

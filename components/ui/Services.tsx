@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { SERVICES } from "@/lib/projects";
+import { getServices } from "@/lib/projects";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 /**
  * Grid variant of the services section.
@@ -11,26 +12,28 @@ import { SERVICES } from "@/lib/projects";
  * lost, but nothing imports it yet.
  */
 export default function Services() {
+  const { locale, dictionary } = useLanguage();
+  const services = getServices(locale);
+
   return (
     <section className="py-32 px-6 md:px-12 bg-white text-black">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-20 gap-8">
           <div className="max-w-xl">
             <h2 className="text-sm font-medium tracking-[0.4em] text-red-600 uppercase mb-6">
-              Services
+              {dictionary.services.eyebrow}
             </h2>
             <h3 className="text-4xl md:text-6xl font-serif leading-tight">
-              Value I Bring to Your Projects.
+              {dictionary.services.gridTitle}
             </h3>
           </div>
           <p className="text-black/60 max-w-sm mb-2 text-lg">
-            Focused on delivering premium digital experiences through
-            cutting-edge engineering.
+            {dictionary.services.gridDescription}
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-px bg-black/10 overflow-hidden border border-black/10">
-          {SERVICES.map((service, index) => (
+          {services.map((service, index) => (
             <motion.div
               key={service.id}
               initial={{ opacity: 0, y: 20 }}

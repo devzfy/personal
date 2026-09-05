@@ -13,7 +13,9 @@ import {
   parseMetric,
 } from "@/lib/projects";
 import { projectGraph } from "@/lib/schema";
-import { SITE, absoluteUrl } from "@/lib/site";
+import { absoluteUrl, getSite } from "@/lib/site";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/locale";
 
 interface PageProps {
   // Next 16: route params arrive as a Promise.
@@ -31,10 +33,13 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const project = getProjectBySlug(slug);
+  const locale = await getLocale();
+  const dictionary = getDictionary(locale);
+  const site = getSite(locale);
+  const project = getProjectBySlug(slug, locale);
 
   if (!project) {
-    return { title: "Project not found" };
+    return { title: dictionary.project.notFound };
   }
 
   const description = project.longDescription ?? project.description;
@@ -62,13 +67,13 @@ export async function generateMetadata({
     openGraph: {
       type: "article",
       url,
-      title: `${project.title} — ${SITE.name}`,
+      title: `${project.title} — ${site.name}`,
       description,
       ...(images ? { images } : {}),
     },
     twitter: {
       card: "summary_large_image",
-      title: `${project.title} — ${SITE.name}`,
+      title: `${project.title} — ${site.name}`,
       description,
       ...(images ? { images: images.map((image) => image.url) } : {}),
     },
@@ -81,17 +86,19 @@ const body = "text-white/60 text-lg leading-relaxed";
 
 export default async function CaseStudyPage({ params }: PageProps) {
   const { slug } = await params;
-  const project = getProjectBySlug(slug);
+  const locale = await getLocale();
+  const dictionary = getDictionary(locale);
+  const project = getProjectBySlug(slug, locale);
 
   if (!project) notFound();
 
   const index = getProjectIndex(slug);
-  const next = getNextProject(slug);
+  const next = getNextProject(slug, locale);
 
   const narrative = [
-    { label: "Problem", copy: project.problem },
-    { label: "Approach", copy: project.approach },
-    { label: "Result", copy: project.result },
+    { label: dictionary.project.problem, copy: project.problem },
+    { label: dictionary.project.approach, copy: project.approach },
+    { label: dictionary.project.result, copy: project.result },
   ].filter((section): section is { label: string; copy: string } =>
     Boolean(section.copy),
   );
@@ -99,7 +106,7 @@ export default async function CaseStudyPage({ params }: PageProps) {
 
   return (
     <div className="pt-40 pb-32 px-6 md:px-12 bg-black min-h-screen">
-      <JsonLd data={projectGraph(project)} />
+      <JsonLd data={projectGraph(project, locale)} />
 
       <article className="max-w-4xl mx-auto">
         <FadeIn>
@@ -108,7 +115,7 @@ export default async function CaseStudyPage({ params }: PageProps) {
             data-cursor="hover"
             className="inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.4em] text-white/40 hover:text-red-600 transition-colors mb-16"
           >
-            <span aria-hidden="true">&larr;</span> Back to Archive
+            <span aria-hidden="true">&larr;</span> {dictionary.project.back}
           </TransitionLink>
         </FadeIn>
 
@@ -116,7 +123,7 @@ export default async function CaseStudyPage({ params }: PageProps) {
         <header className="mb-24">
           <FadeIn>
             <span className="text-[10px] uppercase tracking-[0.4em] text-red-600 mb-6 block">
-              Case Study 0{index + 1}
+              {dictionary.project.caseStudy} 0{index + 1}
             </span>
             <h1 className="text-4xl md:text-7xl font-serif mb-8 leading-[1.1]">
               {project.title}
@@ -155,7 +162,7 @@ export default async function CaseStudyPage({ params }: PageProps) {
                     data-cursor="hover"
                     className="px-8 py-4 bg-red-600 hover:bg-white text-white hover:text-black transition-all duration-300 uppercase text-xs font-bold tracking-widest text-center"
                   >
-                    View Live
+                    {dictionary.project.viewLive}
                   </a>
                 )}
                 {project.githubUrl && (
@@ -166,7 +173,7 @@ export default async function CaseStudyPage({ params }: PageProps) {
                     data-cursor="hover"
                     className="px-8 py-4 border border-white/20 hover:border-white transition-colors uppercase text-xs font-bold tracking-widest text-center"
                   >
-                    Source
+                    {dictionary.project.source}
                   </a>
                 )}
               </div>
@@ -180,7 +187,7 @@ export default async function CaseStudyPage({ params }: PageProps) {
             <div className="relative aspect-16/10 w-full mb-24 overflow-hidden border border-white/10">
               <Image
                 src={project.imageUrl}
-                alt={`${project.title} interface`}
+                alt={dictionary.project.interfaceAlt(project.title)}
                 fill
                 sizes="(max-width: 896px) 100vw, 896px"
                 className="object-cover"
@@ -193,7 +200,7 @@ export default async function CaseStudyPage({ params }: PageProps) {
         {project.longDescription && (
           <FadeIn delay={0.4}>
             <section className="mb-20 border-t border-white/5 pt-12">
-              <h2 className={sectionHeading}>Overview</h2>
+              <h2 className={sectionHeading}>{dictionary.project.overview}</h2>
               <p className={body}>{project.longDescription}</p>
             </section>
           </FadeIn>
@@ -216,7 +223,7 @@ export default async function CaseStudyPage({ params }: PageProps) {
         {/* ------------------------------------------------------- metrics */}
         <FadeIn delay={0.2}>
           <section className="mb-20 border-t border-white/5 pt-12">
-            <h2 className={sectionHeading}>Impact</h2>
+            <h2 className={sectionHeading}>{dictionary.project.impact}</h2>
             <ul className="grid sm:grid-cols-2 gap-px bg-white/10 border border-white/10">
               {project.metrics.map((metric) => {
                 const { value, label } = parseMetric(metric);
@@ -251,14 +258,17 @@ export default async function CaseStudyPage({ params }: PageProps) {
 
         {/* -------------------------------------------------- next project */}
         {next && (
-          <nav aria-label="Next case study" className="border-t border-white/10 pt-12">
+          <nav
+            aria-label={dictionary.project.nextAria}
+            className="border-t border-white/10 pt-12"
+          >
             <TransitionLink
               href={`/projects/${next.id}`}
               data-cursor="hover"
               className="group block"
             >
               <span className="block text-[10px] uppercase tracking-[0.4em] text-white/30 mb-4">
-                Next Project
+                {dictionary.project.next}
               </span>
               <span className="flex items-baseline justify-between gap-6">
                 <span className="text-3xl md:text-5xl font-serif group-hover:text-red-600 group-hover:italic transition-all">
@@ -277,14 +287,14 @@ export default async function CaseStudyPage({ params }: PageProps) {
 
         <div className="mt-24 border-t border-white/5 pt-16 text-center">
           <h2 className="text-3xl md:text-5xl font-serif mb-10">
-            Interested in something similar?
+            {dictionary.project.similar}
           </h2>
           <TransitionLink
             href="/contact"
             data-cursor="hover"
             className="inline-block px-10 py-5 bg-red-600 hover:bg-white text-white hover:text-black transition-all duration-300 uppercase text-sm font-bold tracking-widest"
           >
-            Start a Conversation
+            {dictionary.project.startConversation}
           </TransitionLink>
         </div>
       </article>

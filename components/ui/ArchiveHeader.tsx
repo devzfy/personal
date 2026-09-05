@@ -1,9 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 /** Animated header block for the /projects archive. Ported from pages/Projects.tsx. */
 export default function ArchiveHeader() {
+  const { dictionary } = useLanguage();
+
   return (
     <header className="mb-24">
       <motion.h1
@@ -12,7 +15,7 @@ export default function ArchiveHeader() {
         transition={{ duration: 0.6 }}
         className="text-5xl md:text-8xl font-serif mb-8"
       >
-        Archive.
+        {dictionary.project.archiveTitle}
       </motion.h1>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -26,8 +29,7 @@ export default function ArchiveHeader() {
         transition={{ duration: 0.6, delay: 0.3 }}
         className="text-white/40 text-lg max-w-xl"
       >
-        A curated list of projects, experiments, and collaborations that showcase
-        my approach to frontend architecture and design.
+        {dictionary.project.archiveDescription}
       </motion.p>
     </header>
   );

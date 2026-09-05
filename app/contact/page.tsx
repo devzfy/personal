@@ -3,42 +3,43 @@ import type { Metadata } from "next";
 import JsonLd from "@/components/JsonLd";
 import ContactContent from "@/components/ui/ContactContent";
 import { contactGraph } from "@/lib/schema";
-import { SITE, absoluteUrl } from "@/lib/site";
+import { absoluteUrl, getSite } from "@/lib/site";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/locale";
 
-const title = "Contact";
-const description =
-  "Have a vision? Let's bring it to life through code. Get in touch with Javokhir Shokirov — software engineer in Tashkent, Uzbekistan (UTC+5), currently open for freelance work.";
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  const dictionary = getDictionary(locale);
+  const site = getSite(locale);
+  const title = dictionary.nav.contact;
+  const description = `${dictionary.contact.intro} ${dictionary.contact.locationValue}. ${dictionary.contact.statusValue}.`;
 
-export const metadata: Metadata = {
-  title,
-  description,
-  alternates: { canonical: "/contact" },
-  openGraph: {
-    type: "website",
-    url: absoluteUrl("/contact"),
-    title: `${title} — ${SITE.name}`,
+  return {
+    title,
     description,
-    images: [
-      {
-        url: SITE.ogImage.url,
-        width: SITE.ogImage.width,
-        height: SITE.ogImage.height,
-        alt: SITE.ogImage.alt,
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `${title} — ${SITE.name}`,
-    description,
-    images: [SITE.ogImage.url],
-  },
-};
+    alternates: { canonical: "/contact" },
+    openGraph: {
+      type: "website",
+      url: absoluteUrl("/contact"),
+      title: `${title} — ${site.name}`,
+      description,
+      images: [site.ogImage],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} — ${site.name}`,
+      description,
+      images: [site.ogImage.url],
+    },
+  };
+}
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const locale = await getLocale();
+
   return (
     <>
-      <JsonLd data={contactGraph()} />
+      <JsonLd data={contactGraph(locale)} />
       <ContactContent />
     </>
   );

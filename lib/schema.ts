@@ -1,6 +1,7 @@
-import { PROJECTS, SERVICES } from "./projects";
-import { SAME_AS, SITE, SOCIALS, absoluteUrl } from "./site";
+import { getProjects, getServices } from "./projects";
+import { SAME_AS, SITE, SOCIALS, absoluteUrl, getSite } from "./site";
 import type { Project } from "./types";
+import { DEFAULT_LOCALE, getDictionary, type Locale } from "./i18n";
 
 /**
  * schema.org builders.
@@ -38,21 +39,23 @@ function ref(id: string): JsonLdNode {
  * and url makes each page self-sufficient while @id still ties it to the same
  * entity, which is the cheap way to get both.
  */
-function personRef(): JsonLdNode {
+function personRef(locale: Locale): JsonLdNode {
+  const site = getSite(locale);
   return {
     "@type": "Person",
     "@id": SCHEMA_ID.person,
-    name: SITE.name,
-    url: SITE.url,
+    name: site.name,
+    url: site.url,
   };
 }
 
 /** Same idea for the archive, so isPartOf is meaningful on a case study page. */
-function archiveRef(): JsonLdNode {
+function archiveRef(locale: Locale): JsonLdNode {
+  const dictionary = getDictionary(locale);
   return {
     "@type": "CollectionPage",
     "@id": SCHEMA_ID.archive,
-    name: "Archive",
+    name: dictionary.nav.archive,
     url: absoluteUrl("/projects"),
   };
 }
@@ -64,37 +67,39 @@ function projectImage(project: Project): string {
     : absoluteUrl(`/projects/${project.id}/opengraph-image`);
 }
 
-export function personNode(): JsonLdNode {
+export function personNode(locale: Locale = DEFAULT_LOCALE): JsonLdNode {
+  const site = getSite(locale);
   return {
     "@type": "Person",
     "@id": SCHEMA_ID.person,
-    name: SITE.name,
+    name: site.name,
     alternateName: "devzfy",
-    url: SITE.url,
-    image: absoluteUrl(SITE.ogImage.url),
-    jobTitle: SITE.jobTitle,
-    description: SITE.description,
-    email: `mailto:${SITE.email}`,
+    url: site.url,
+    image: absoluteUrl(site.ogImage.url),
+    jobTitle: site.jobTitle,
+    description: site.description,
+    email: `mailto:${site.email}`,
     sameAs: SAME_AS,
     address: {
       "@type": "PostalAddress",
-      addressLocality: SITE.location.city,
-      addressCountry: SITE.location.countryCode,
+      addressLocality: site.location.city,
+      addressCountry: site.location.countryCode,
     },
-    knowsAbout: SERVICES.map((service) => service.title),
+    knowsAbout: getServices(locale).map((service) => service.title),
     knowsLanguage: ["en", "uz", "ru"],
     worksFor: { "@type": "Organization", name: "Independent / Freelance" },
   };
 }
 
-export function websiteNode(): JsonLdNode {
+export function websiteNode(locale: Locale = DEFAULT_LOCALE): JsonLdNode {
+  const site = getSite(locale);
   return {
     "@type": "WebSite",
     "@id": SCHEMA_ID.website,
-    url: SITE.url,
-    name: SITE.name,
-    description: SITE.description,
-    inLanguage: "en",
+    url: site.url,
+    name: site.name,
+    description: site.description,
+    inLanguage: locale,
     publisher: ref(SCHEMA_ID.person),
     author: ref(SCHEMA_ID.person),
   };
@@ -113,7 +118,10 @@ export function websiteNode(): JsonLdNode {
  * No date fields: there is no real datePublished for these, and inventing one
  * would be a factual claim rather than markup.
  */
-export function projectNode(project: Project): JsonLdNode {
+export function projectNode(
+  project: Project,
+  locale: Locale = DEFAULT_LOCALE,
+): JsonLdNode {
   const url = absoluteUrl(`/projects/${project.id}`);
 
   return {
@@ -126,12 +134,12 @@ export function projectNode(project: Project): JsonLdNode {
     abstract: project.description,
     url,
     image: projectImage(project),
-    inLanguage: "en",
-    genre: "Case study",
+    inLanguage: locale,
+    genre: getDictionary(locale).project.caseStudy,
     keywords: project.techStack.join(", "),
-    author: personRef(),
-    creator: personRef(),
-    isPartOf: archiveRef(),
+    author: personRef(locale),
+    creator: personRef(locale),
+    isPartOf: archiveRef(locale),
     mainEntityOfPage: url,
     // The metrics are the substance of each case study, so they are exposed as
     // machine-readable claims rather than being left as prose only.
@@ -157,28 +165,31 @@ export function breadcrumbNode(
 }
 
 /** Homepage: the site, the person, and the profile page they are the subject of. */
-export function homeGraph(): JsonLdNode {
+export function homeGraph(locale: Locale = DEFAULT_LOCALE): JsonLdNode {
+  const site = getSite(locale);
   return {
     "@context": "https://schema.org",
     "@graph": [
-      websiteNode(),
-      personNode(),
+      websiteNode(locale),
+      personNode(locale),
       {
         "@type": "ProfilePage",
         "@id": absoluteUrl("/#webpage"),
-        url: SITE.url,
-        name: `${SITE.name} — ${SITE.jobTitle}`,
+        url: site.url,
+        name: `${site.name} — ${site.jobTitle}`,
         isPartOf: ref(SCHEMA_ID.website),
         about: ref(SCHEMA_ID.person),
         mainEntity: ref(SCHEMA_ID.person),
-        primaryImageOfPage: absoluteUrl(SITE.ogImage.url),
+        primaryImageOfPage: absoluteUrl(site.ogImage.url),
       },
     ],
   };
 }
 
 /** Archive: a CollectionPage plus an ordered ItemList of every case study. */
-export function archiveGraph(): JsonLdNode {
+export function archiveGraph(locale: Locale = DEFAULT_LOCALE): JsonLdNode {
+  const dictionary = getDictionary(locale);
+  const projects = getProjects(locale);
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -186,16 +197,15 @@ export function archiveGraph(): JsonLdNode {
         "@type": "CollectionPage",
         "@id": SCHEMA_ID.archive,
         url: absoluteUrl("/projects"),
-        name: "Archive",
-        description:
-          "Selected projects, experiments and collaborations by Javokhir Shokirov.",
+        name: dictionary.nav.archive,
+        description: dictionary.project.archiveDescription,
         isPartOf: ref(SCHEMA_ID.website),
-        author: personRef(),
+        author: personRef(locale),
         mainEntity: {
           "@type": "ItemList",
           itemListOrder: "https://schema.org/ItemListOrderAscending",
-          numberOfItems: PROJECTS.length,
-          itemListElement: PROJECTS.map((project, index) => ({
+          numberOfItems: projects.length,
+          itemListElement: projects.map((project, index) => ({
             "@type": "ListItem",
             position: index + 1,
             name: project.title,
@@ -204,21 +214,25 @@ export function archiveGraph(): JsonLdNode {
         },
       },
       breadcrumbNode([
-        { name: "Work", path: "/" },
-        { name: "Archive", path: "/projects" },
+        { name: dictionary.nav.work, path: "/" },
+        { name: dictionary.nav.archive, path: "/projects" },
       ]),
     ],
   };
 }
 
 /** Case study: the work itself, its page, and the trail to it. */
-export function projectGraph(project: Project): JsonLdNode {
+export function projectGraph(
+  project: Project,
+  locale: Locale = DEFAULT_LOCALE,
+): JsonLdNode {
   const path = `/projects/${project.id}`;
+  const dictionary = getDictionary(locale);
 
   return {
     "@context": "https://schema.org",
     "@graph": [
-      projectNode(project),
+      projectNode(project, locale),
       {
         "@type": "WebPage",
         "@id": absoluteUrl(`${path}#webpage`),
@@ -228,11 +242,11 @@ export function projectGraph(project: Project): JsonLdNode {
         about: ref(SCHEMA_ID.project(project.id)),
         mainEntity: ref(SCHEMA_ID.project(project.id)),
         primaryImageOfPage: projectImage(project),
-        author: personRef(),
+        author: personRef(locale),
       },
       breadcrumbNode([
-        { name: "Work", path: "/" },
-        { name: "Archive", path: "/projects" },
+        { name: dictionary.nav.work, path: "/" },
+        { name: dictionary.nav.archive, path: "/projects" },
         { name: project.title, path },
       ]),
     ],
@@ -240,7 +254,9 @@ export function projectGraph(project: Project): JsonLdNode {
 }
 
 /** Contact: a ContactPage carrying the reachable channels. */
-export function contactGraph(): JsonLdNode {
+export function contactGraph(locale: Locale = DEFAULT_LOCALE): JsonLdNode {
+  const dictionary = getDictionary(locale);
+  const site = getSite(locale);
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -248,26 +264,26 @@ export function contactGraph(): JsonLdNode {
         "@type": "ContactPage",
         "@id": absoluteUrl("/contact#webpage"),
         url: absoluteUrl("/contact"),
-        name: `Contact — ${SITE.name}`,
+        name: `${dictionary.nav.contact} — ${site.name}`,
         isPartOf: ref(SCHEMA_ID.website),
         about: ref(SCHEMA_ID.person),
         mainEntity: {
           "@type": "Person",
           "@id": SCHEMA_ID.person,
-          name: SITE.name,
-          email: `mailto:${SITE.email}`,
-          url: SITE.url,
+          name: site.name,
+          email: `mailto:${site.email}`,
+          url: site.url,
           sameAs: [SOCIALS.telegram, SOCIALS.linkedin, SOCIALS.instagram],
           address: {
             "@type": "PostalAddress",
-            addressLocality: SITE.location.city,
-            addressCountry: SITE.location.countryCode,
+            addressLocality: site.location.city,
+            addressCountry: site.location.countryCode,
           },
         },
       },
       breadcrumbNode([
-        { name: "Work", path: "/" },
-        { name: "Contact", path: "/contact" },
+        { name: dictionary.nav.work, path: "/" },
+        { name: dictionary.nav.contact, path: "/contact" },
       ]),
     ],
   };
